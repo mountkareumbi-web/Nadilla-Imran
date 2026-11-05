@@ -37,19 +37,19 @@
             padding: 20px;
         }
         .title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             color: #f59e0b;
             margin-bottom: 10px;
             text-shadow: 3px 3px #000;
         }
         .subtitle {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #94a3b8;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .room-box {
             background: rgba(255,255,255,0.05);
-            padding: 15px 25px;
+            padding: 12px 20px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 25px;
@@ -70,27 +70,27 @@
         }
         .btn-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             flex-wrap: wrap;
             justify-content: center;
         }
         .btn-role {
-            padding: 18px 30px;
-            font-size: 1.2rem;
+            padding: 16px 24px;
+            font-size: 1.1rem;
             font-weight: bold;
             border: none;
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.4);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            min-width: 200px;
+            gap: 5px;
+            min-width: 180px;
         }
         .btn-role:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 2px 0 rgba(0,0,0,0.4);
         }
         .btn-display { background: #2563eb; color: white; }
@@ -111,20 +111,21 @@
             width: 100%;
             max-width: 320px;
             padding: 20px;
-            margin: 12px 0;
-            font-size: 1.3rem;
+            margin: 10px 0;
+            font-size: 1.2rem;
             font-weight: bold;
             border-radius: 15px;
             border: none;
             cursor: pointer;
             box-shadow: 0 5px 0 rgba(0,0,0,0.5);
-            transition: all 0.2s;
+            transition: all 0.15s;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            -webkit-tap-highlight-color: transparent;
         }
         .slot-btn:active:not(:disabled) {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: 0 1px 0 rgba(0,0,0,0.5);
         }
         .slot-p1 { background: #dc2626; color: white; }
@@ -137,7 +138,7 @@
             opacity: 0.6;
         }
         .status-badge {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             padding: 4px 8px;
             border-radius: 6px;
             background: rgba(0,0,0,0.3);
@@ -162,8 +163,8 @@
             border-bottom: 2px solid #1f2937;
             z-index: 10;
         }
-        .hud-status { display: flex; gap: 20px; }
-        .player-tag { padding: 4px 10px; border-radius: 4px; font-weight: bold; }
+        .hud-status { display: flex; gap: 15px; }
+        .player-tag { padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
         .p1-tag { background: rgba(220, 38, 38, 0.2); color: #ef4444; border: 1px solid #ef4444; }
         .p2-tag { background: rgba(22, 163, 74, 0.2); color: #22c55e; border: 1px solid #22c55e; }
         
@@ -182,7 +183,7 @@
             display: block;
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Memastikan tampilan tidak terpotong! */
+            object-fit: contain;
             image-rendering: pixelated;
         }
 
@@ -202,7 +203,7 @@
             left: 50%;
             transform: translateX(-50%);
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             background: rgba(0,0,0,0.6);
             padding: 6px 16px;
             border-radius: 20px;
@@ -224,10 +225,10 @@
         /* D-PAD LANDSCAPE (KIRI) */
         .dpad-container {
             position: absolute;
-            bottom: 25px;
-            left: 25px;
-            width: 170px;
-            height: 170px;
+            bottom: 20px;
+            left: 20px;
+            width: 160px;
+            height: 160px;
         }
         .dpad-btn {
             position: absolute;
@@ -237,7 +238,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #e4e4e7;
             border-radius: 8px;
         }
@@ -245,31 +246,31 @@
             background: #71717a;
             border-color: #a1a1aa;
         }
-        .dpad-up    { top: 0; left: 56px; width: 58px; height: 60px; }
-        .dpad-down  { bottom: 0; left: 56px; width: 58px; height: 60px; }
-        .dpad-left  { top: 56px; left: 0; width: 60px; height: 58px; }
-        .dpad-right { top: 56px; right: 0; width: 60px; height: 58px; }
-        .dpad-center{ top: 56px; left: 56px; width: 58px; height: 58px; background: #27272a; border: none; }
+        .dpad-up    { top: 0; left: 52px; width: 56px; height: 55px; }
+        .dpad-down  { bottom: 0; left: 52px; width: 56px; height: 55px; }
+        .dpad-left  { top: 52px; left: 0; width: 55px; height: 56px; }
+        .dpad-right { top: 52px; right: 0; width: 55px; height: 56px; }
+        .dpad-center{ top: 52px; left: 52px; width: 56px; height: 56px; background: #27272a; border: none; }
 
         /* ACTION BUTTONS (KANAN: Segitiga, Kotak, Kali, Bundar) */
         .action-container {
             position: absolute;
-            bottom: 25px;
-            right: 25px;
-            width: 170px;
-            height: 170px;
+            bottom: 20px;
+            right: 20px;
+            width: 160px;
+            height: 160px;
         }
         .act-btn {
             position: absolute;
-            width: 54px;
-            height: 54px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             box-shadow: 0 4px 0 rgba(0,0,0,0.5);
             color: white;
         }
@@ -277,13 +278,12 @@
             transform: translateY(3px);
             box-shadow: 0 1px 0 rgba(0,0,0,0.5);
         }
-        /* Layout Diamond */
-        .btn-triangle { top: 0; left: 58px; background: #10b981; } /* Segitiga / Atas */
-        .btn-square   { top: 58px; left: 0; background: #ec4899; }  /* Kotak / Kiri */
-        .btn-circle   { top: 58px; right: 0; background: #ef4444; } /* Bundar / Kanan */
-        .btn-cross    { bottom: 0; left: 58px; background: #3b82f6; } /* Kali / Bawah */
+        .btn-triangle { top: 0; left: 54px; background: #10b981; }
+        .btn-square   { top: 54px; left: 0; background: #ec4899; }
+        .btn-circle   { top: 54px; right: 0; background: #ef4444; }
+        .btn-cross    { bottom: 0; left: 54px; background: #3b82f6; }
 
-        /* Orientation Alert untuk HP */
+        /* Orientation Warning HP */
         #orientation-warning {
             display: none;
             position: fixed;
@@ -330,16 +330,16 @@
     <!-- SCREEN 2: PILIH SLOT STICK (HP) -->
     <div id="slot-screen">
         <h2 style="margin-bottom: 5px; color: #f59e0b;">PILIH STICK PLAYER</h2>
-        <p style="color: #94a3b8; margin-bottom: 20px; font-size: 0.9rem;">Room: <span id="slot-room-display" style="color:white; font-weight:bold;"></span></p>
+        <p style="color: #94a3b8; margin-bottom: 20px; font-size: 0.85rem;">Room: <span id="slot-room-display" style="color:white; font-weight:bold;"></span></p>
 
         <button id="btn-slot-p1" class="slot-btn slot-p1" onclick="claimSlot('p1')">
             <span>🎮 STICK 1 (PLAYER 1)</span>
-            <span id="badge-p1" class="status-badge">MEMUAT...</span>
+            <span id="badge-p1" class="status-badge">TERSEDIA</span>
         </button>
 
         <button id="btn-slot-p2" class="slot-btn slot-p2" onclick="claimSlot('p2')">
             <span>🎮 STICK 2 (PLAYER 2)</span>
-            <span id="badge-p2" class="status-badge">MEMUAT...</span>
+            <span id="badge-p2" class="status-badge">TERSEDIA</span>
         </button>
 
         <p id="slot-error" style="color: #ef4444; margin-top: 15px; font-size: 0.85rem; height: 20px;"></p>
@@ -389,38 +389,30 @@
     <div id="orientation-warning">
         <div style="font-size: 3rem; margin-bottom: 10px;">🔄</div>
         <h3>MOHON PUTAR HP KE LANDSCAPE</h3>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px;">Pegang HP secara mendatar untuk menggunakan gamepad.</p>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px;">Pegang HP secara mendatar untuk menggunakan stick.</p>
     </div>
 
     <script>
-        // --- 1. FIREBASE REALTIME DATABASE SYNC (PUBLIC FREE DEMO BACKEND) ---
-        const firebaseConfig = {
-            databaseURL: "https://mario-remote-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        };
-        
-        // Fallback Simulasi jika Firebase offline/gagal
+        // --- 1. SINKRONISASI JARINGAN (FIREBASE + BROADCAST & LOCALSTORAGE FALLBACK) ---
         let db = null;
         try {
-            firebase.initializeApp(firebaseConfig);
+            firebase.initializeApp({ databaseURL: "https://mario-remote-default-rtdb.asia-southeast1.firebasedatabase.app/" });
             db = firebase.database();
         } catch(e) {
-            console.log("Firebase initialized in broadcast channel mode.");
+            console.log("Database fallback mode aktif.");
         }
 
-        // BroadcastChannel fallback untuk lokal test di browser yang sama
         const localBC = new BroadcastChannel('mario_game_channel');
 
         let currentRoom = "MARIO1";
-        let assignedPlayer = null; // 'p1' atau 'p2'
+        let assignedPlayer = null;
         let isDisplay = false;
 
-        // State input player (P1 & P2)
         const inputs = {
             p1: { left: false, right: false, up: false, down: false, action: false },
             p2: { left: false, right: false, up: false, down: false, action: false }
         };
 
-        // --- 2. LOGIKA ROLE & SELEKSI SLOT ---
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -450,10 +442,16 @@
             }
         }
 
-        // Pantau ketersediaan slot HP
+        // Pantau Slot Stick Terisi / Belum
         function listenSlotStatus() {
             if (db) {
+                // Timeout Fallback jika Firebase terlambat/offline
+                const timeout = setTimeout(() => {
+                    updateSlotUI({});
+                }, 1500);
+
                 db.ref(`rooms/${currentRoom}/slots`).on('value', snapshot => {
+                    clearTimeout(timeout);
                     const slots = snapshot.val() || {};
                     updateSlotUI(slots);
                 });
@@ -468,7 +466,7 @@
             const badgeP1 = document.getElementById('badge-p1');
             const badgeP2 = document.getElementById('badge-p2');
 
-            // Slot P1
+            // Slot 1
             if (slots.p1 && slots.p1.connected) {
                 btnP1.disabled = true;
                 badgeP1.innerText = "TERISI (FULL)";
@@ -477,7 +475,7 @@
                 badgeP1.innerText = "TERSEDIA";
             }
 
-            // Slot P2
+            // Slot 2
             if (slots.p2 && slots.p2.connected) {
                 btnP2.disabled = true;
                 badgeP2.innerText = "TERISI (FULL)";
@@ -487,28 +485,32 @@
             }
         }
 
+        // Tombol Pilih Stick 1 / Stick 2 Tekan
         function claimSlot(playerSlot) {
             toggleFullScreen();
-            
+
+            const enterController = () => {
+                startController(playerSlot);
+            };
+
             if (db) {
                 const slotRef = db.ref(`rooms/${currentRoom}/slots/${playerSlot}`);
                 slotRef.get().then(snapshot => {
                     const val = snapshot.val();
                     if (val && val.connected) {
-                        document.getElementById('slot-error').innerText = `Slot Stick ${playerSlot.toUpperCase()} sudah diisi orang lain!`;
+                        document.getElementById('slot-error').innerText = `Stick ${playerSlot.toUpperCase()} sudah digunakan HP lain!`;
                     } else {
-                        // Kunci Slot
                         slotRef.set({ connected: true, time: Date.now() });
                         slotRef.onDisconnect().remove();
-                        startController(playerSlot);
+                        enterController();
                     }
-                }).catch(() => startController(playerSlot));
+                }).catch(() => enterController());
             } else {
-                startController(playerSlot);
+                enterController();
             }
         }
 
-        // --- 3. CONTROLLER STICK HP (LANDSCAPE) ---
+        // --- 2. CONTROLLER STICK HP ---
         function startController(playerSlot) {
             assignedPlayer = playerSlot;
             document.getElementById('slot-screen').style.display = 'none';
@@ -518,20 +520,26 @@
             titleEl.innerText = playerSlot === 'p1' ? '🎮 STICK 1 (MARIO)' : '🎮 STICK 2 (LUIGI)';
             titleEl.style.color = playerSlot === 'p1' ? '#ef4444' : '#22c55e';
 
+            // Beritahu Laptop bahwa HP terkoneksi
+            if(db) {
+                db.ref(`rooms/${currentRoom}/slots/${playerSlot}`).set({ connected: true, time: Date.now() });
+                db.ref(`rooms/${currentRoom}/slots/${playerSlot}`).onDisconnect().remove();
+            }
+
             setupTouchControls();
         }
 
         function sendInputState(key, isPressed) {
             if(!assignedPlayer) return;
 
-            const payload = { player: assignedPlayer, key: key, pressed: isPressed };
-
-            // Kirim via Firebase
+            // 1. Firebase Sync
             if (db) {
                 db.ref(`rooms/${currentRoom}/inputs/${assignedPlayer}/${key}`).set(isPressed);
             }
-            // Kirim via Local BroadcastChannel
+            // 2. Local Broadcast Channel & Storage Sync
+            const payload = { player: assignedPlayer, key: key, pressed: isPressed, room: currentRoom };
             localBC.postMessage(payload);
+            localStorage.setItem(`mario_input_${currentRoom}`, JSON.stringify(payload));
         }
 
         function setupTouchControls() {
@@ -541,40 +549,41 @@
                 const key = btn.getAttribute('data-key');
                 if(!key) return;
 
-                const handleStart = (e) => {
-                    e.preventDefault();
+                const press = (e) => {
+                    if(e) e.preventDefault();
                     btn.classList.add('active');
-                    if (navigator.vibrate) navigator.vibrate(15);
+                    if (navigator.vibrate) navigator.vibrate(12);
                     mapAndSend(key, true);
                 };
 
-                const handleEnd = (e) => {
-                    e.preventDefault();
+                const release = (e) => {
+                    if(e) e.preventDefault();
                     btn.classList.remove('active');
                     mapAndSend(key, false);
                 };
 
-                btn.addEventListener('touchstart', handleStart, {passive: false});
-                btn.addEventListener('touchend', handleEnd, {passive: false});
-                btn.addEventListener('mousedown', handleStart);
-                btn.addEventListener('mouseup', handleEnd);
+                btn.addEventListener('touchstart', press, {passive: false});
+                btn.addEventListener('touchend', release, {passive: false});
+                btn.addEventListener('pointerdown', press);
+                btn.addEventListener('pointerup', release);
+                btn.addEventListener('mousedown', press);
+                btn.addEventListener('mouseup', release);
             });
         }
 
         function mapAndSend(key, isPressed) {
-            // Mapping Tombol D-Pad & Action
             if (key === 'left') sendInputState('left', isPressed);
             if (key === 'right') sendInputState('right', isPressed);
-            if (key === 'up' || key === 'cross' || key === 'triangle') sendInputState('up', isPressed); // Melompat
-            if (key === 'square' || key === 'circle') sendInputState('action', isPressed); // Berlari / Aksi
+            if (key === 'up' || key === 'cross' || key === 'triangle') sendInputState('up', isPressed);
+            if (key === 'square' || key === 'circle') sendInputState('action', isPressed);
         }
 
-        // --- 4. ENGINE GAME SUPER MARIO 2D (LAPTOP DISPLAY) ---
+        // --- 3. DISPLAY GAME (LAPTOP) ---
         function initDisplayGame() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
 
-            // Sinkronisasi Input dari Firebase
+            // Firebase Input Listener
             if(db) {
                 db.ref(`rooms/${currentRoom}/slots`).on('value', snap => {
                     const slots = snap.val() || {};
@@ -586,7 +595,7 @@
                         p1El.style.background = "rgba(220, 38, 38, 0.8)";
                         p1El.style.color = "#fff";
                     } else {
-                        p1El.innerText = "P1: KEYBOARD (A/D/W) / WAITING HP";
+                        p1El.innerText = "P1: KEYBOARD (A/D/W)";
                         p1El.style.background = "rgba(220, 38, 38, 0.2)";
                         p1El.style.color = "#ef4444";
                     }
@@ -596,7 +605,7 @@
                         p2El.style.background = "rgba(22, 163, 74, 0.8)";
                         p2El.style.color = "#fff";
                     } else {
-                        p2El.innerText = "P2: KEYBOARD (ARROWS) / WAITING HP";
+                        p2El.innerText = "P2: KEYBOARD (ARROWS)";
                         p2El.style.background = "rgba(22, 163, 74, 0.2)";
                         p2El.style.color = "#22c55e";
                     }
@@ -611,20 +620,25 @@
                 });
             }
 
-            // Channel Lokal Fallback
+            // Local Broadcast & Storage Listener
             localBC.onmessage = (e) => {
-                const { player, key, pressed } = e.data;
-                if(inputs[player]) inputs[player][key] = pressed;
+                const { player, key, pressed, room } = e.data;
+                if(room === currentRoom && inputs[player]) inputs[player][key] = pressed;
             };
 
-            // Keyboard Fallback (Laptop dapat dimainkan langsung)
+            window.addEventListener('storage', (e) => {
+                if(e.key === `mario_input_${currentRoom}`) {
+                    const data = JSON.parse(e.newValue);
+                    if(data && inputs[data.player]) inputs[data.player][data.key] = data.pressed;
+                }
+            });
+
+            // Keyboard Control
             window.addEventListener('keydown', e => {
-                // Player 1: WASD
                 if(e.code === 'KeyA') inputs.p1.left = true;
                 if(e.code === 'KeyD') inputs.p1.right = true;
                 if(e.code === 'KeyW') inputs.p1.up = true;
 
-                // Player 2: Panah
                 if(e.code === 'ArrowLeft') inputs.p2.left = true;
                 if(e.code === 'ArrowRight') inputs.p2.right = true;
                 if(e.code === 'ArrowUp') inputs.p2.up = true;
@@ -640,7 +654,7 @@
                 if(e.code === 'ArrowUp') inputs.p2.up = false;
             });
 
-            // Entitas Game
+            // Engine Physics
             const gravity = 0.5;
 
             class Player {
@@ -659,7 +673,6 @@
                 }
 
                 update(inputState, platforms) {
-                    // Pergerakan
                     if (inputState.left) this.vx = -3.5;
                     else if (inputState.right) this.vx = 3.5;
                     else this.vx = 0;
@@ -669,12 +682,10 @@
                         this.grounded = false;
                     }
 
-                    // Gravitasi
                     this.vy += gravity;
                     this.x += this.vx;
                     this.y += this.vy;
 
-                    // Tabrakan dengan Platform/Tanah
                     this.grounded = false;
                     for (let p of platforms) {
                         if (this.x < p.x + p.w &&
@@ -687,10 +698,7 @@
                         }
                     }
 
-                    // Batas dunia bawah (Jatuh ke jurang)
-                    if (this.y > 500) {
-                        this.respawn();
-                    }
+                    if (this.y > 500) this.respawn();
                 }
 
                 respawn() {
@@ -704,11 +712,9 @@
                     ctx.fillStyle = this.color;
                     ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
                     
-                    // Topi Mario/Luigi
                     ctx.fillStyle = '#fff';
                     ctx.fillRect(this.x - cameraX + 4, this.y + 4, 16, 6);
 
-                    // Nama Player
                     ctx.fillStyle = '#fff';
                     ctx.font = '10px Courier New';
                     ctx.fillText(this.name, this.x - cameraX - 2, this.y - 6);
@@ -718,7 +724,6 @@
             const p1 = new Player(50, '#ef4444', 'MARIO');
             const p2 = new Player(90, '#22c55e', 'LUIGI');
 
-            // Level Platforms
             const platforms = [
                 { x: 0, y: 380, w: 700, h: 70 },
                 { x: 250, y: 280, w: 100, h: 20, type: 'block' },
@@ -726,10 +731,9 @@
                 { x: 800, y: 380, w: 600, h: 70 },
                 { x: 950, y: 270, w: 120, h: 20, type: 'block' },
                 { x: 1500, y: 380, w: 800, h: 70 },
-                { x: 2100, y: 150, w: 40, h: 230, type: 'flag' } // Tiang Finish
+                { x: 2100, y: 150, w: 40, h: 230, type: 'flag' }
             ];
 
-            // Musuh Goomba
             const enemies = [
                 { x: 450, y: 356, w: 24, h: 24, vx: -1, alive: true },
                 { x: 1050, y: 356, w: 24, h: 24, vx: -1.2, alive: true }
@@ -737,42 +741,35 @@
 
             let cameraX = 0;
 
-            // Main Loop Game
             function gameLoop() {
-                // Update
                 p1.update(inputs.p1, platforms);
                 p2.update(inputs.p2, platforms);
 
-                // Musuh
                 for(let e of enemies) {
                     if(!e.alive) continue;
                     e.x += e.vx;
                     if(e.x < 350 || e.x > 680) e.vx *= -1;
 
-                    // Cek Tabrakan P1 & P2 dengan Musuh
                     [p1, p2].forEach(p => {
                         if (p.x < e.x + e.w && p.x + p.width > e.x &&
                             p.y < e.y + e.h && p.y + p.height > e.y) {
                             if (p.vy > 0 && p.y + p.height - p.vy <= e.y + 10) {
-                                e.alive = false; // Injak musuh
+                                e.alive = false;
                                 p.vy = -6;
                                 p.score += 200;
                             } else {
-                                p.respawn(); // Terkena musuh
+                                p.respawn();
                             }
                         }
                     });
                 }
 
-                // Kamera mengikuti player terdepan
                 const targetCamX = Math.max(0, Math.max(p1.x, p2.x) - 300);
                 cameraX += (targetCamX - cameraX) * 0.1;
 
-                // --- RENDER ---
-                ctx.fillStyle = '#5c94fc'; // Langit
+                ctx.fillStyle = '#5c94fc';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Awan
                 ctx.fillStyle = 'rgba(255,255,255,0.7)';
                 ctx.beginPath();
                 ctx.arc(200 - cameraX * 0.2, 80, 30, 0, Math.PI * 2);
@@ -780,7 +777,6 @@
                 ctx.arc(260 - cameraX * 0.2, 80, 30, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Gambar Platform
                 for (let p of platforms) {
                     if(p.type === 'block') {
                         ctx.fillStyle = '#b45309';
@@ -797,14 +793,13 @@
                         ctx.lineTo(p.x - cameraX + 8, p.y + 30);
                         ctx.fill();
                     } else {
-                        ctx.fillStyle = '#15803d'; // Tanah
+                        ctx.fillStyle = '#15803d';
                         ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
                         ctx.fillStyle = '#86efac';
                         ctx.fillRect(p.x - cameraX, p.y, p.w, 8);
                     }
                 }
 
-                // Gambar Musuh
                 for(let e of enemies) {
                     if(!e.alive) continue;
                     ctx.fillStyle = '#78350f';
@@ -814,11 +809,9 @@
                     ctx.fillRect(e.x - cameraX + 14, e.y + 4, 4, 4);
                 }
 
-                // Gambar Players
                 p1.draw(ctx, cameraX);
                 p2.draw(ctx, cameraX);
 
-                // UI Overlay Score & Lives
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 14px Courier New';
                 ctx.fillText(`MARIO P1 - SCORE: ${p1.score} LIVES: ${'❤️'.repeat(Math.max(0, p1.lives))}`, 20, 30);
