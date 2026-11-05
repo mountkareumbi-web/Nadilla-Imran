@@ -2,741 +2,100 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Game Seni Rupa Kelas 5 SD - Database Spreadsheet</title>
-    <!-- Library jsPDF untuk Download Rekap Nilai PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireboy & Watergirl Host Controller</title>
+    <!-- Menggunakan PeerJS untuk koneksi P2P antar HP dan Laptop -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #0f172a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-        }
-
-        /* SCREEN 1: MENU UTAMA */
-        #menu-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-            background: linear-gradient(135deg, #1e1b4b, #312e81);
-            padding: 20px;
-        }
-        .title {
-            font-size: 2rem;
-            color: #fbbf24;
-            margin-bottom: 8px;
-            text-shadow: 2px 2px #000;
-        }
-        .subtitle {
-            font-size: 0.95rem;
-            color: #c7d2fe;
-            margin-bottom: 25px;
-        }
-        .btn-container {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .btn-role {
-            padding: 16px 24px;
-            font-size: 1.05rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            min-width: 190px;
-        }
-        .btn-role:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.4); }
-        .btn-display { background: #2563eb; color: white; }
-        .btn-multiplayer { background: #16a34a; color: white; }
-        .btn-subtext { font-size: 0.75rem; opacity: 0.8; font-weight: normal; }
-
-        /* SCREEN 2: BUKU CATATAN & SELECT DATABASE SISWA (HP) */
-        #slot-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: #1e1b4b;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .note-card {
-            background: #fef08a;
-            color: #1e1b4b;
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 340px;
-            width: 100%;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border-left: 5px solid #ca8a04;
-        }
-        .note-card h3 { margin-bottom: 5px; color: #854d0e; }
-        .note-card ol { padding-left: 18px; margin-top: 5px; }
-
-        .select-box {
-            width: 100%;
-            max-width: 340px;
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            text-align: left;
-        }
-        .select-box label { font-size: 0.85rem; color: #fbbf24; font-weight: bold; }
-        .select-box select {
-            padding: 10px;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            border: 2px solid #6366f1;
-            background: #0f172a;
-            color: white;
-            outline: none;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 340px;
-            width: 100%;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-            color: #fef08a;
-        }
-        .checkbox-container input { width: 18px; height: 18px; cursor: pointer; }
-
-        .slot-btn {
-            width: 100%;
-            max-width: 340px;
-            padding: 14px;
-            margin: 6px 0;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .slot-p1 { background: #dc2626; color: white; }
-        .slot-p2 { background: #16a34a; color: white; }
-        .slot-btn:disabled { background: #475569 !important; opacity: 0.6; cursor: not-allowed; }
-
-        /* SCREEN 3: DISPLAY LAPTOP */
-        #display-screen {
-            display: none;
-            flex-direction: column;
-            width: 100vw;
-            height: 100vh;
-            background: #000;
-        }
-        .hud-bar {
-            height: 50px;
-            background: #1e1b4b;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            font-size: 0.85rem;
-            border-bottom: 2px solid #4338ca;
-            z-index: 10;
-        }
-        .hud-status { display: flex; gap: 15px; }
-        .player-tag { padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
-        .p1-tag { background: rgba(220, 38, 38, 0.3); color: #fca5a5; border: 1px solid #ef4444; }
-        .p2-tag { background: rgba(22, 163, 74, 0.3); color: #86efac; border: 1px solid #22c55e; }
-        .btn-pdf {
-            background: #d97706;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        #canvas-wrapper {
-            flex: 1;
-            width: 100%;
-            height: calc(100vh - 50px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #312e81;
-            position: relative;
-        }
-        canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
-
-        /* SCREEN 4: TOUCHSCREEN OVERLAY HP CONTROLLER */
-        #controller-screen {
-            display: none;
-            width: 100vw;
-            height: 100vh;
-            background: #0f172a;
-            position: relative;
-            touch-action: none;
-            overflow: hidden;
-        }
-        .controller-header {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-weight: bold;
-            font-size: 0.85rem;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 16px;
-            border-radius: 20px;
-            z-index: 20;
-        }
-
-        .touch-btn {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.5rem;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .touch-btn:active, .touch-btn.active {
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(0.95);
-        }
-        .btn-left { bottom: 30px; left: 30px; width: 70px; height: 70px; }
-        .btn-right { bottom: 30px; left: 120px; width: 70px; height: 70px; }
-        .btn-jump { bottom: 30px; right: 30px; width: 80px; height: 80px; background: rgba(59, 130, 246, 0.4); }
-
-        #orientation-warning {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-        }
-        @media (max-width: 768px) and (orientation: portrait) {
-            .mobile-mode #orientation-warning { display: flex; }
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background: #222; color: #fff; padding: 20px; }
+        .box { background: #333; padding: 20px; border-radius: 10px; display: inline-block; margin: 10px; }
+        input { padding: 10px; font-size: 16px; width: 250px; text-align: center; }
+        button { padding: 10px 20px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #218838; }
+        .status { font-weight: bold; margin-top: 10px; }
+        .connected { color: #28a745; }
+        .disconnected { color: #dc3545; }
     </style>
 </head>
 <body>
 
-    <!-- SCREEN 1: MENU UTAMA -->
-    <div id="menu-screen">
-        <h1 class="title">🎨 SENI RUPA KELAS 5 SD</h1>
-        <p class="subtitle">Sistem Pembelajaran Interaktif & Game Multi-Device</p>
+    <h1>🎮 Hubungkan Stik HP ke Laptop</h1>
+    <p>Buka <a href="https://www.friv.com/z/games/fireboyandwatergirlforest/game.html" target="_blank" style="color: #4da6ff;">Game Fireboy & Watergirl</a> di tab lain atau layar sebelah.</p>
 
-        <div class="btn-container">
-            <button class="btn-role btn-display" onclick="selectRole('display')">
-                💻 TOMBOL DISPLAY
-                <span class="btn-subtext">(Untuk Layar Utama Laptop)</span>
-            </button>
-            <button class="btn-role btn-multiplayer" onclick="selectRole('multiplayer')">
-                📱 MULTIPLAYER
-                <span class="btn-subtext">(Untuk HP Siswa)</span>
-            </button>
-        </div>
+    <div class="box">
+        <h3>Pemain 1 (Watergirl - WASD)</h3>
+        <p>ID Host Anda: <span id="host-id-wg" style="color: yellow; font-weight: bold;">Memuat...</span></p>
+        <p class="status disconnected" id="status-wg">Status: Menunggu HP Terhubung...</p>
+        <br>
+        <a id="link-wg" href="#" target="_blank"><button>Buka Controller Watergirl (HP 1)</button></a>
     </div>
 
-    <!-- SCREEN 2: BUKU CATATAN & DATABASE SISWA (HP) -->
-    <div id="slot-screen">
-        <div class="note-card">
-            <h3>📖 TUGAS CATATAN SISWA</h3>
-            <p>Sebelum memilih nama dan bermain, pastikan kamu sudah mencatat di <b>Buku Tulis</b>:</p>
-            <ol>
-                <li>Unsur Seni Rupa (Garis, Warna, Bentuk).</li>
-                <li>Prinsip Keseimbangan & Proporsi.</li>
-            </ol>
-        </div>
-
-        <div class="select-box">
-            <label for="select-kelas">Pilih Kelas:</label>
-            <select id="select-kelas" onchange="fetchSiswaData()">
-                <option value="">-- Pilih Kelas --</option>
-                <option value="5A">Kelas 5A</option>
-                <option value="5B">Kelas 5B</option>
-            </select>
-        </div>
-
-        <div class="select-box">
-            <label for="select-nama">Pilih Nama Siswa (Dari Spreadsheet):</label>
-            <select id="select-nama">
-                <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
-            </select>
-        </div>
-
-        <div class="checkbox-container">
-            <input type="checkbox" id="check-catatan" onchange="togglePlayButtons()">
-            <label for="check-catatan">Saya sudah selesai mencatat di buku tulis.</label>
-        </div>
-
-        <button id="btn-slot-p1" class="slot-btn slot-p1" onclick="claimSlot('p1')" disabled>
-            <span>🎮 SISWA 1 (PLAYER 1)</span>
-        </button>
-
-        <button id="btn-slot-p2" class="slot-btn slot-p2" onclick="claimSlot('p2')" disabled>
-            <span>🎮 SISWA 2 (PLAYER 2)</span>
-        </button>
-    </div>
-
-    <!-- SCREEN 3: DISPLAY GAME (LAPTOP) -->
-    <div id="display-screen">
-        <div class="hud-bar">
-            <div style="font-weight: bold; color: #fbbf24;">SENI RUPA KELAS 5 SD</div>
-            <div class="hud-status">
-                <div id="p1-status" class="player-tag p1-tag">P1: MENUNGGU HP...</div>
-                <div id="p2-status" class="player-tag p2-tag">P2: MENUNGGU HP...</div>
-            </div>
-            <button class="btn-pdf" onclick="downloadPDFResults()">📥 Download Nilai (PDF)</button>
-        </div>
-        <div id="canvas-wrapper">
-            <canvas id="gameCanvas" width="800" height="450"></canvas>
-        </div>
-    </div>
-
-    <!-- SCREEN 4: HP CONTROLLER LAYAR SENTUH -->
-    <div id="controller-screen">
-        <div class="controller-header">
-            <span id="stick-title">STICK PLAYER</span>
-        </div>
-
-        <div class="touch-btn btn-left" data-key="left">◀</div>
-        <div class="touch-btn btn-right" data-key="right">▶</div>
-        <div class="touch-btn btn-jump" data-key="up">▲</div>
+    <div class="box">
+        <h3>Pemain 2 (Fireboy - Panah)</h3>
+        <p>ID Host Anda: <span id="host-id-fb" style="color: yellow; font-weight: bold;">Memuat...</span></p>
+        <p class="status disconnected" id="status-fb">Status: Menunggu HP Terhubung...</p>
+        <br>
+        <a id="link-fb" href="#" target="_blank"><button>Buka Controller Fireboy (HP 2)</button></a>
     </div>
 
     <script>
-        // --- MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI ---
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzDsAT9W0ktKMU6YNe9jg6M7D-i7QM-emnO_48wVn40BqRWGjheuN8pmRv4rv7fLvpPw/exec";
+        // Membuat ID unik acak untuk koneksi
+        const uidWG = 'fbwg-wg-' + Math.random().toString(36).substring(2, 7);
+        const uidFB = 'fbwg-fb-' + Math.random().toString(36).substring(2, 7);
 
-        let databaseSiswa = { "5A": [], "5B": [] };
-        const localBC = new BroadcastChannel('seni_rupa_game');
-        let assignedPlayer = null;
-        let p1Name = "Siswa 1";
-        let p2Name = "Siswa 2";
-        let p1Kelas = "5A";
-        let p2Kelas = "5B";
+        document.getElementById('host-id-wg').innerText = uidWG;
+        document.getElementById('host-id-fb').innerText = uidFB;
 
-        const inputs = {
-            p1: { left: false, right: false, up: false },
-            p2: { left: false, right: false, up: false }
-        };
+        // Link otomatis mengarah ke file controller di GitHub Pages Anda dengan membawa parameter ID
+        const repoPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+        document.getElementById('link-wg').href = repoPath + 'controller-watergirl.html?id=' + uidWG;
+        document.getElementById('link-fb').href = repoPath + 'controller-fireboy.html?id=' + uidFB;
 
-        function selectRole(role) {
-            document.getElementById('menu-screen').style.display = 'none';
-
-            if(role === 'display') {
-                document.getElementById('display-screen').style.display = 'flex';
-                initDisplayGame();
-            } else {
-                document.body.classList.add('mobile-mode');
-                document.getElementById('slot-screen').style.display = 'flex';
-                loadSiswaFromSpreadsheet();
-            }
-        }
-
-        // Ambil data siswa dari Spreadsheet via Google Apps Script
-        function loadSiswaFromSpreadsheet() {
-            if(APPS_SCRIPT_URL.includes("MASUKKAN_URL")) {
-                // Fallback jika URL belum diisi
-                databaseSiswa = {
-                    "5A": ["Ahmad Fauzi (Demo)", "Anisa Rahma (Demo)"],
-                    "5B": ["Jihan Audy (Demo)", "Kevin Sanjaya (Demo)"]
-                };
-                return;
-            }
-
-            fetch(APPS_SCRIPT_URL + "?action=getSiswa")
-                .then(res => res.json())
-                .then(res => {
-                    if(res.status === "success") {
-                        databaseSiswa = res.data;
-                    }
-                })
-                .catch(err => console.error("Gagal memuat database:", err));
-        }
-
-        function fetchSiswaData() {
-            const kelas = document.getElementById('select-kelas').value;
-            const selectNama = document.getElementById('select-nama');
-            selectNama.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
-
-            if(!kelas) return;
-
-            const daftarSiswa = databaseSiswa[kelas] || [];
-            daftarSiswa.forEach(nama => {
-                const opt = document.createElement('option');
-                opt.value = nama;
-                opt.textContent = nama;
-                selectNama.appendChild(opt);
+        // Inisialisasi PeerJS untuk Watergirl
+        const peerWG = new Peer(uidWG);
+        peerWG.on('connection', (conn) => {
+            document.getElementById('status-wg').innerText = 'Status: Terhubung dengan HP 1! ✅';
+            document.getElementById('status-wg').className = 'status connected';
+            
+            conn.on('data', (data) => {
+                simulateKey(data.key, data.action);
             });
-        }
+        });
 
-        function togglePlayButtons() {
-            const isChecked = document.getElementById('check-catatan').checked;
-            document.getElementById('btn-slot-p1').disabled = !isChecked;
-            document.getElementById('btn-slot-p2').disabled = !isChecked;
-        }
-
-        function claimSlot(slot) {
-            const kelas = document.getElementById('select-kelas').value;
-            const nama = document.getElementById('select-nama').value;
-
-            if(!kelas || !nama) return alert("Silakan pilih Kelas dan Nama Siswa terlebih dahulu!");
-
-            assignedPlayer = slot;
-            const fullName = `${nama} (${kelas})`;
-
-            if(slot === 'p1') p1Kelas = kelas;
-            else p2Kelas = kelas;
-
-            localBC.postMessage({
-                type: 'REGISTER_PLAYER',
-                slot: slot,
-                name: fullName
+        // Inisialisasi PeerJS untuk Fireboy
+        const peerFB = new Peer(uidFB);
+        peerFB.on('connection', (conn) => {
+            document.getElementById('status-fb').innerText = 'Status: Terhubung dengan HP 2! ✅';
+            document.getElementById('status-fb').className = 'status connected';
+            
+            conn.on('data', (data) => {
+                simulateKey(data.key, data.action);
             });
+        });
 
-            document.getElementById('slot-screen').style.display = 'none';
-            document.getElementById('controller-screen').style.display = 'block';
+        // Fungsi untuk memicu event Keyboard secara virtual di browser laptop
+        function simulateKey(key, action) {
+            console.log(`Key: ${key}, Action: ${action}`);
+            const eventType = action === 'down' ? 'keydown' : 'keyup';
+            
+            let keyCode = '';
+            if (key === 'ArrowUp') keyCode = 'ArrowUp';
+            if (key === 'ArrowDown') keyCode = 'ArrowDown';
+            if (key === 'ArrowLeft') keyCode = 'ArrowLeft';
+            if (key === 'ArrowRight') keyCode = 'ArrowRight';
+            if (key === 'w' || key === 'W') keyCode = 'KeyW';
+            if (key === 'a' || key === 'A') keyCode = 'KeyA';
+            if (key === 's' || key === 'S') keyCode = 'KeyS';
+            if (key === 'd' || key === 'D') keyCode = 'KeyD';
 
-            const titleEl = document.getElementById('stick-title');
-            titleEl.innerText = `${slot.toUpperCase()} - ${fullName}`;
-            titleEl.style.color = slot === 'p1' ? '#ef4444' : '#22c55e';
-
-            setupTouchControls();
-        }
-
-        function sendInputState(key, isPressed) {
-            if(!assignedPlayer) return;
-            localBC.postMessage({
-                type: 'INPUT',
-                player: assignedPlayer,
+            const keyboardEvent = new KeyboardEvent(eventType, {
                 key: key,
-                pressed: isPressed
+                code: keyCode,
+                bubbles: true,
+                cancelable: true
             });
-        }
-
-        function setupTouchControls() {
-            const buttons = document.querySelectorAll('.touch-btn');
-            buttons.forEach(btn => {
-                const key = btn.getAttribute('data-key');
-                if(!key) return;
-
-                const press = (e) => {
-                    if(e) e.preventDefault();
-                    btn.classList.add('active');
-                    if (navigator.vibrate) navigator.vibrate(12);
-                    sendInputState(key, true);
-                };
-
-                const release = (e) => {
-                    if(e) e.preventDefault();
-                    btn.classList.remove('active');
-                    sendInputState(key, false);
-                };
-
-                btn.addEventListener('touchstart', press, {passive: false});
-                btn.addEventListener('touchend', release, {passive: false});
-                btn.addEventListener('mousedown', press);
-                btn.addEventListener('mouseup', release);
-            });
-        }
-
-        // Kirim Nilai Otomatis ke Spreadsheet via Apps Script
-        function simpanNilaiKeDatabase(namaLengkap, kelas, nilai) {
-            if(APPS_SCRIPT_URL.includes("MASUKKAN_URL")) return;
-
-            const status = nilai >= 70 ? "LULUS" : "REMIDI";
-            // Bersihkan nama dari format kelas di belakang jika ada
-            const namaSiswaClean = namaLengkap.split(" (")[0];
-
-            fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    kelas: kelas,
-                    nama: namaSiswaClean,
-                    nilai: nilai,
-                    status: status
-                })
-            }).catch(err => console.error("Gagal simpan nilai:", err));
-        }
-
-        // --- ENGINE GAME LAPTOP ---
-        let gameP1, gameP2;
-
-        function initDisplayGame() {
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-
-            localBC.onmessage = (e) => {
-                const data = e.data;
-                if(data.type === 'REGISTER_PLAYER') {
-                    if(data.slot === 'p1') {
-                        p1Name = data.name;
-                        gameP1.name = data.name;
-                        const el = document.getElementById('p1-status');
-                        el.innerText = `P1: ${data.name}`;
-                        el.style.background = "rgba(220, 38, 38, 0.8)";
-                        el.style.color = "#fff";
-                    } else if(data.slot === 'p2') {
-                        p2Name = data.name;
-                        gameP2.name = data.name;
-                        const el = document.getElementById('p2-status');
-                        el.innerText = `P2: ${data.name}`;
-                        el.style.background = "rgba(22, 163, 74, 0.8)";
-                        el.style.color = "#fff";
-                    }
-                } else if(data.type === 'INPUT') {
-                    if(inputs[data.player]) inputs[data.player][data.key] = data.pressed;
-                }
-            };
-
-            window.addEventListener('keydown', e => {
-                if(e.code === 'KeyA') inputs.p1.left = true;
-                if(e.code === 'KeyD') inputs.p1.right = true;
-                if(e.code === 'KeyW') inputs.p1.up = true;
-
-                if(e.code === 'ArrowLeft') inputs.p2.left = true;
-                if(e.code === 'ArrowRight') inputs.p2.right = true;
-                if(e.code === 'ArrowUp') inputs.p2.up = true;
-            });
-
-            window.addEventListener('keyup', e => {
-                if(e.code === 'KeyA') inputs.p1.left = false;
-                if(e.code === 'KeyD') inputs.p1.right = false;
-                if(e.code === 'KeyW') inputs.p1.up = false;
-
-                if(e.code === 'ArrowLeft') inputs.p2.left = false;
-                if(e.code === 'ArrowRight') inputs.p2.right = false;
-                if(e.code === 'ArrowUp') inputs.p2.up = false;
-            });
-
-            const gravity = 0.5;
-
-            class Player {
-                constructor(x, color, name) {
-                    this.x = x;
-                    this.y = 200;
-                    this.width = 24;
-                    this.height = 32;
-                    this.vx = 0;
-                    this.vy = 0;
-                    this.color = color;
-                    this.name = name;
-                    this.grounded = false;
-                    this.score = 0;
-                    this.lives = 3;
-                    this.savedToDB = false;
-                }
-
-                update(inputState, platforms) {
-                    if (inputState.left) this.vx = -3.5;
-                    else if (inputState.right) this.vx = 3.5;
-                    else this.vx = 0;
-
-                    if (inputState.up && this.grounded) {
-                        this.vy = -11;
-                        this.grounded = false;
-                    }
-
-                    this.vy += gravity;
-                    this.x += this.vx;
-                    this.y += this.vy;
-
-                    this.grounded = false;
-                    for (let p of platforms) {
-                        if (this.x < p.x + p.w &&
-                            this.x + this.width > p.x &&
-                            this.y + this.height > p.y &&
-                            this.y + this.height - this.vy <= p.y) {
-                            this.y = p.y - this.height;
-                            this.vy = 0;
-                            this.grounded = true;
-                        }
-                    }
-
-                    if (this.y > 500) this.respawn();
-
-                    // Batasi skor maksimal 100 dan auto-sync ke spreadsheet
-                    if(this.score >= 100 && !this.savedToDB) {
-                        this.score = 100;
-                        this.savedToDB = true;
-                        simpanNilaiKeDatabase(this.name, this === gameP1 ? p1Kelas : p2Kelas, 100);
-                    }
-                }
-
-                respawn() {
-                    this.lives--;
-                    this.x = 50;
-                    this.y = 100;
-                    this.vy = 0;
-                }
-
-                draw(ctx, cameraX) {
-                    ctx.fillStyle = this.color;
-                    ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(this.x - cameraX + 4, this.y + 4, 16, 6);
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 10px Arial';
-                    ctx.fillText(this.name, this.x - cameraX - 10, this.y - 6);
-                }
-            }
-
-            gameP1 = new Player(50, '#ef4444', p1Name);
-            gameP2 = new Player(90, '#22c55e', p2Name);
-
-            const platforms = [
-                { x: 0, y: 380, w: 700, h: 70 },
-                { x: 250, y: 280, w: 100, h: 20 },
-                { x: 400, y: 220, w: 100, h: 20 },
-                { x: 800, y: 380, w: 600, h: 70 },
-                { x: 950, y: 270, w: 120, h: 20 },
-                { x: 1500, y: 380, w: 800, h: 70 }
-            ];
-
-            const artItems = [
-                { x: 270, y: 240, type: '🎨 Warna Primer', points: 25, collected: false },
-                { x: 420, y: 180, type: '📐 Proporsi', points: 25, collected: false },
-                { x: 980, y: 230, type: '🖼️ Anyaman', points: 25, collected: false },
-                { x: 1100, y: 340, type: '✏️ Ragam Hias', points: 25, collected: false }
-            ];
-
-            let cameraX = 0;
-
-            function gameLoop() {
-                gameP1.update(inputs.p1, platforms);
-                gameP2.update(inputs.p2, platforms);
-
-                for(let item of artItems) {
-                    if(item.collected) continue;
-                    [gameP1, gameP2].forEach(p => {
-                        if (p.x < item.x + 20 && p.x + p.width > item.x &&
-                            p.y < item.y + 20 && p.y + p.height > item.y) {
-                            item.collected = true;
-                            p.score += item.points;
-                        }
-                    });
-                }
-
-                const targetCamX = Math.max(0, Math.max(gameP1.x, gameP2.x) - 300);
-                cameraX += (targetCamX - cameraX) * 0.1;
-
-                ctx.fillStyle = '#312e81';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                for (let p of platforms) {
-                    ctx.fillStyle = '#4338ca';
-                    ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-                    ctx.fillStyle = '#6366f1';
-                    ctx.fillRect(p.x - cameraX, p.y, p.w, 6);
-                }
-
-                for (let item of artItems) {
-                    if(item.collected) continue;
-                    ctx.fillStyle = '#fbbf24';
-                    ctx.beginPath();
-                    ctx.arc(item.x - cameraX + 10, item.y + 10, 10, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '10px Arial';
-                    ctx.fillText(item.type, item.x - cameraX - 15, item.y - 5);
-                }
-
-                gameP1.draw(ctx, cameraX);
-                gameP2.draw(ctx, cameraX);
-
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(`${gameP1.name}: ${gameP1.score} Poin | Nyawa: ${'❤️'.repeat(Math.max(0, gameP1.lives))}`, 15, 30);
-                ctx.fillText(`${gameP2.name}: ${gameP2.score} Poin | Nyawa: ${'❤️'.repeat(Math.max(0, gameP2.lives))}`, 450, 30);
-
-                requestAnimationFrame(gameLoop);
-            }
-
-            gameLoop();
-        }
-
-        // --- CETAK LAPORAN REKAP NILAI (PDF) ---
-        function downloadPDFResults() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            const p1FinalScore = gameP1 ? Math.min(100, gameP1.score) : 0;
-            const p2FinalScore = gameP2 ? Math.min(100, gameP2.score) : 0;
-
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.text("REKAP HASIL BELAJAR SENI RUPA KELAS 5 SD", 105, 20, { align: "center" });
-
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 105, 27, { align: "center" });
-            doc.line(20, 32, 190, 32);
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.text("Laporan Nilai Ujian Game & Catatan:", 20, 42);
-
-            doc.setFillColor(230, 230, 230);
-            doc.rect(20, 48, 170, 8, 'F');
-            doc.text("No", 25, 54);
-            doc.text("Nama Siswa & Kelas", 45, 54);
-            doc.text("Nilai Akhir", 125, 54);
-            doc.text("Status", 160, 54);
-
-            doc.setFont("helvetica", "normal");
-            doc.text("1", 25, 65);
-            doc.text(p1Name, 45, 65);
-            doc.text(`${p1FinalScore} / 100`, 125, 65);
-            doc.text(p1FinalScore >= 70 ? "LULUS" : "REMIDI", 160, 65);
-
-            doc.text("2", 25, 75);
-            doc.text(p2Name, 45, 75);
-            doc.text(`${p2FinalScore} / 100`, 125, 75);
-            doc.text(p2FinalScore >= 70 ? "LULUS" : "REMIDI", 160, 75);
-
-            doc.line(20, 82, 190, 82);
-            doc.save(`Nilai_Seni_Rupa_Kelas5_${Date.now()}.pdf`);
+            document.dispatchEvent(keyboardEvent);
+            window.dispatchEvent(keyboardEvent);
         }
     </script>
 </body>
