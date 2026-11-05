@@ -13,7 +13,6 @@
       font-family: 'Press Start 2P', cursive;
     }
     
-    /* Controller styles */
     .d-btn {
       touch-action: manipulation;
       user-select: none;
@@ -21,10 +20,9 @@
     }
     
     .d-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.90);
     }
     
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
     }
@@ -39,28 +37,28 @@
 </head>
 <body class="bg-gray-950 text-white font-sans antialiased min-h-screen flex flex-col overflow-x-hidden select-none">
 
-  <!-- APP CONTAINER -->
+  <!-- MAIN CONTAINER -->
   <div id="app" class="flex-1 flex flex-col items-center justify-center relative w-full h-full min-h-screen">
     
     <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" class="absolute inset-0 bg-gray-950 z-50 flex flex-col items-center justify-center p-4">
-      <div class="text-red-500 text-4xl mb-4 animate-bounce">
+      <div class="text-red-500 text-5xl mb-4 animate-bounce">
         <i class="fa-solid fa-gamepad"></i>
       </div>
-      <h1 class="font-pixel text-xl text-yellow-400 mb-2 text-center">SUPER MARIO CO-OP</h1>
-      <p class="text-gray-400 text-sm mb-4">Menghubungkan ke server real-time...</p>
-      <div class="w-48 h-2 bg-gray-800 rounded-full overflow-hidden">
+      <h1 class="font-pixel text-xl sm:text-2xl text-yellow-400 mb-2 text-center">SUPER MARIO CO-OP</h1>
+      <p class="text-gray-400 text-sm mb-4 font-mono">Menghubungkan Server Real-Time...</p>
+      <div class="w-48 h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
         <div class="w-full h-full bg-red-600 animate-pulse"></div>
       </div>
     </div>
 
     <!-- 1. LANDING / ROLE SELECTION SCREEN -->
-    <div id="roleSelectScreen" class="hidden flex-col items-center justify-center p-6 w-full max-w-xl text-center z-40">
+    <div id="roleSelectScreen" class="hidden flex-col items-center justify-center p-4 w-full max-w-xl text-center z-40">
       <div class="bg-gray-900 border-4 border-yellow-500 rounded-2xl p-6 sm:p-8 shadow-2xl w-full">
         <h1 class="font-pixel text-2xl sm:text-3xl text-yellow-400 mb-2 drop-shadow-md">SUPER MARIO</h1>
-        <p class="font-pixel text-xs text-red-500 mb-6 tracking-widest">MULTI-DEVICE CONSOLE EDITION</p>
+        <p class="font-pixel text-xs text-red-500 mb-6 tracking-widest">REAL-TIME MULTI-DEVICE CONSOLE</p>
         
-        <p class="text-gray-300 text-sm mb-6">Pilih mode perangkat ini:</p>
+        <p class="text-gray-300 text-sm mb-6">Pilih mode untuk perangkat ini:</p>
         
         <div class="flex flex-col gap-4">
           <!-- Laptop Display Button -->
@@ -68,74 +66,77 @@
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-desktop text-2xl text-blue-200"></i>
               <div class="text-left">
-                <div class="font-bold text-lg">Display (Laptop / TV)</div>
-                <div class="text-xs text-blue-200">Layar Game Utam & Engine</div>
+                <div class="font-bold text-lg">Tombol Display (Laptop)</div>
+                <div class="text-xs text-blue-200">Layar Utam Game & Canvas Engine</div>
               </div>
             </div>
             <i class="fa-solid fa-chevron-right opacity-60 group-hover:translate-x-1 transition"></i>
           </button>
 
           <!-- Controller P1 Button -->
-          <button id="btnSelectP1" onclick="selectRole('p1')" class="group relative bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-red-800 transition flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed">
+          <button id="btnSelectP1" onclick="selectRole('p1')" class="group relative bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-red-800 transition flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed">
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-mobile-screen text-2xl text-red-200"></i>
               <div class="text-left">
                 <div class="font-bold text-lg flex items-center gap-2">
-                  Stick Player 1 (Mario)
-                  <span id="badgeP1" class="text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full font-normal">Kosong</span>
+                  Ambil Stick 1 (Mario)
+                  <span id="badgeP1" class="text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full font-normal">Tersedia</span>
                 </div>
-                <div class="text-xs text-red-200">Smartphone Controller Red</div>
+                <div class="text-xs text-red-200">Smartphone Controller Red (P1)</div>
               </div>
             </div>
             <i class="fa-solid fa-gamepad text-xl opacity-70"></i>
           </button>
 
           <!-- Controller P2 Button -->
-          <button id="btnSelectP2" onclick="selectRole('p2')" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-green-800 transition flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed">
+          <button id="btnSelectP2" onclick="selectRole('p2')" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-green-800 transition flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed">
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-mobile-screen text-2xl text-green-200"></i>
               <div class="text-left">
                 <div class="font-bold text-lg flex items-center gap-2">
-                  Stick Player 2 (Luigi)
-                  <span id="badgeP2" class="text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded-full font-normal">Kosong</span>
+                  Ambil Stick 2 (Luigi)
+                  <span id="badgeP2" class="text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded-full font-normal">Tersedia</span>
                 </div>
-                <div class="text-xs text-green-200">Smartphone Controller Green</div>
+                <div class="text-xs text-green-200">Smartphone Controller Green (P2)</div>
               </div>
             </div>
             <i class="fa-solid fa-gamepad text-xl opacity-70"></i>
           </button>
         </div>
 
-        <div id="slotNotice" class="mt-4 text-xs text-yellow-400/80 hidden font-mono">
-          <i class="fa-solid fa-triangle-exclamation mr-1"></i> Slot controller terisi! Hanya dapat memilih slot yang tersedia.
+        <div id="slotNotice" class="mt-4 text-xs text-yellow-400/90 hidden font-mono">
+          <i class="fa-solid fa-lock mr-1"></i> Slot controller terisi penuh! Orang lain tidak dapat memilih slot yang sedang digunakan.
         </div>
       </div>
     </div>
 
     <!-- 2. LAPTOP / DISPLAY SCREEN -->
-    <div id="displayScreen" class="hidden flex-col items-center justify-between w-full h-full min-h-screen p-2 sm:p-4 bg-gray-900">
-      <!-- HUD / Top Status Bar -->
-      <div class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2 bg-gray-800/90 border border-gray-700 p-3 rounded-xl shadow-md text-xs sm:text-sm font-pixel">
+    <div id="displayScreen" class="hidden flex-col items-center justify-between w-full h-full min-h-screen p-2 sm:p-4 bg-gray-950">
+      <!-- HUD Top Bar -->
+      <div class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2 bg-gray-900 border border-gray-800 p-3 rounded-xl shadow-md text-xs sm:text-sm font-pixel">
         <div class="flex items-center gap-4">
-          <!-- P1 Status -->
+          <!-- P1 HUD -->
           <div class="flex items-center gap-2 bg-red-950/80 border border-red-800/60 px-3 py-1.5 rounded-lg">
             <span class="w-3 h-3 rounded-full bg-red-500" id="indicatorP1"></span>
             <span class="text-red-400 font-bold">P1 MARIO</span>
+            <span class="text-xs text-gray-300">❤️ <span id="livesP1">3</span></span>
             <span id="scoreP1" class="text-yellow-400 font-mono text-base">0000</span>
           </div>
 
-          <!-- P2 Status -->
+          <!-- P2 HUD -->
           <div class="flex items-center gap-2 bg-green-950/80 border border-green-800/60 px-3 py-1.5 rounded-lg">
             <span class="w-3 h-3 rounded-full bg-green-500" id="indicatorP2"></span>
             <span class="text-green-400 font-bold">P2 LUIGI</span>
+            <span class="text-xs text-gray-300">❤️ <span id="livesP2">3</span></span>
             <span id="scoreP2" class="text-yellow-400 font-mono text-base">0000</span>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
+          <div class="text-gray-300">WAKTU: <span id="timerVal" class="text-yellow-400 font-mono">300</span></div>
           <div class="text-gray-300">KOIN: <span id="coinCount" class="text-yellow-300">0</span></div>
-          <button onclick="resetServerSlots()" class="bg-gray-700 hover:bg-gray-600 text-xs text-red-300 px-3 py-1.5 rounded-lg border border-gray-600 font-sans transition">
-            <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset Slot Controller
+          <button onclick="resetServerSlots()" class="bg-gray-800 hover:bg-gray-700 text-xs text-red-400 px-3 py-1.5 rounded-lg border border-gray-700 font-sans transition">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset Slot
           </button>
         </div>
       </div>
@@ -144,51 +145,51 @@
       <div class="relative w-full max-w-5xl aspect-[16/9] my-2 bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-gray-800 flex items-center justify-center">
         <canvas id="gameCanvas" class="w-full h-full block"></canvas>
 
-        <!-- Display Game Overlay Dialogs -->
-        <div id="gameModal" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-6 text-center z-10 hidden">
-          <h2 id="modalTitle" class="font-pixel text-2xl text-yellow-400 mb-4">SELAMAT!</h2>
+        <!-- Game End Modal Dialog -->
+        <div id="gameModal" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-6 text-center z-10 hidden">
+          <h2 id="modalTitle" class="font-pixel text-2xl sm:text-3xl text-yellow-400 mb-4">STAGE CLEARED!</h2>
           <p id="modalDesc" class="text-gray-200 mb-6 text-sm max-w-md">Player 1 & Player 2 berhasil menaklukkan level!</p>
-          <button onclick="restartGameEngine()" class="bg-red-600 hover:bg-red-500 font-pixel text-xs text-white px-6 py-3 rounded-xl border-b-4 border-red-800 transition">
+          <button onclick="restartGameEngine()" class="bg-red-600 hover:bg-red-500 font-pixel text-xs text-white px-6 py-3.5 rounded-xl border-b-4 border-red-800 transition shadow-lg">
             MAIN LAGI
           </button>
         </div>
       </div>
 
-      <!-- Footer Controller Connection Helper -->
+      <!-- Footer Controller Helper -->
       <div class="w-full max-w-5xl flex items-center justify-between text-xs text-gray-400 px-2 font-mono">
-        <div><i class="fa-solid fa-link mr-1"></i> Hubungkan 2 HP sebagai Stick P1 & Stick P2</div>
+        <div><i class="fa-solid fa-wifi mr-1 text-green-400"></i> Buka link ini di 2 HP lalu klik "Ambil Stick 1" & "Ambil Stick 2"</div>
         <div class="flex gap-4">
-          <span>P1 Input: <span id="p1InputDebug" class="text-red-400">IDLE</span></span>
-          <span>P2 Input: <span id="p2InputDebug" class="text-green-400">IDLE</span></span>
+          <span>P1 Status: <span id="p1InputDebug" class="text-red-400">IDLE</span></span>
+          <span>P2 Status: <span id="p2InputDebug" class="text-green-400">IDLE</span></span>
         </div>
       </div>
     </div>
 
     <!-- 3. MOBILE CONTROLLER SCREEN (P1 / P2) -->
-    <div id="controllerScreen" class="hidden flex-col justify-between w-full h-screen p-4 bg-gray-900 select-none overflow-hidden touch-none">
+    <div id="controllerScreen" class="hidden flex-col justify-between w-full h-screen p-3 sm:p-4 bg-gray-950 select-none overflow-hidden touch-none">
       
-      <!-- Controller Header -->
-      <div class="w-full flex items-center justify-between bg-gray-800/80 px-4 py-2 rounded-xl border border-gray-700">
+      <!-- Controller Top Header -->
+      <div class="w-full flex items-center justify-between bg-gray-900/90 px-4 py-2 rounded-xl border border-gray-800">
         <div class="flex items-center gap-2">
           <div id="ctrlRoleBadge" class="w-3 h-3 rounded-full bg-red-500"></div>
-          <span id="ctrlRoleName" class="font-pixel text-sm text-yellow-400">STICK P1</span>
+          <span id="ctrlRoleName" class="font-pixel text-xs sm:text-sm text-yellow-400">STICK P1</span>
         </div>
         <div id="ctrlStatus" class="text-xs text-green-400 font-mono flex items-center gap-1">
-          <i class="fa-solid fa-wifi text-xs"></i> TERHUBUNG
+          <i class="fa-solid fa-signal text-xs"></i> TERHUBUNG
         </div>
         <button onclick="leaveControllerRole()" class="text-xs text-gray-400 hover:text-red-400 font-sans">
-          <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
+          <i class="fa-solid fa-right-from-bracket mr-1"></i> Lepas Stick
         </button>
       </div>
 
-      <!-- Main Controller Interface (Landscape Layout) -->
+      <!-- Main Controller Body (Landscape View) -->
       <div class="flex-1 grid grid-cols-2 gap-4 items-center justify-between my-auto w-full max-w-4xl mx-auto px-2">
         
         <!-- LEFT: D-PAD (Arah) -->
         <div class="flex items-center justify-center">
-          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-950/80 rounded-full border-4 border-gray-800 p-2 shadow-inner flex items-center justify-center">
+          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900/90 rounded-full border-4 border-gray-800 p-2 shadow-2xl flex items-center justify-center">
             
-            <!-- Up -->
+            <!-- Up / Jump -->
             <button id="btnUp" 
               class="d-btn absolute top-2 w-14 h-14 bg-gray-800 active:bg-yellow-500 active:text-black text-gray-200 rounded-t-2xl border-t-2 border-x-2 border-gray-600 flex items-center justify-center text-xl shadow-md"
               data-key="up">
@@ -216,18 +217,18 @@
               <i class="fa-solid fa-caret-right"></i>
             </button>
             
-            <!-- Center Pad -->
-            <div class="w-10 h-10 bg-gray-900 rounded-full border border-gray-700"></div>
+            <!-- Center Cross Pad -->
+            <div class="w-10 h-10 bg-gray-950 rounded-full border border-gray-700"></div>
           </div>
         </div>
 
-        <!-- RIGHT: ACTION BUTTONS (Segitiga, Kotak, Bundar, Kali) -->
+        <!-- RIGHT: RETRO ACTION BUTTONS (Segitiga, Kotak, Bundar, Kali) -->
         <div class="flex items-center justify-center">
-          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-950/80 rounded-full border-4 border-gray-800 p-2 shadow-inner flex items-center justify-center">
+          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900/90 rounded-full border-4 border-gray-800 p-2 shadow-2xl flex items-center justify-center">
             
             <!-- Triangle (Top / Jump Action) -->
             <button id="btnTriangle" 
-              class="d-btn absolute top-2 w-14 h-14 bg-green-950 border-2 border-green-500 active:bg-green-500 active:text-black text-green-400 rounded-full flex flex-col items-center justify-center text-sm font-bold shadow-lg"
+              class="d-btn absolute top-2 w-14 h-14 bg-green-950 border-2 border-green-500 active:bg-green-500 active:text-black text-green-400 rounded-full flex flex-col items-center justify-center shadow-lg"
               data-key="jump">
               <i class="fa-solid fa-play -rotate-90 text-xs mb-0.5"></i>
               <span class="text-[9px] font-pixel">JUMP</span>
@@ -235,7 +236,7 @@
 
             <!-- Square (Left / Dash Action) -->
             <button id="btnSquare" 
-              class="d-btn absolute left-2 w-14 h-14 bg-pink-950 border-2 border-pink-500 active:bg-pink-500 active:text-black text-pink-400 rounded-full flex flex-col items-center justify-center text-sm font-bold shadow-lg"
+              class="d-btn absolute left-2 w-14 h-14 bg-pink-950 border-2 border-pink-500 active:bg-pink-500 active:text-black text-pink-400 rounded-full flex flex-col items-center justify-center shadow-lg"
               data-key="run">
               <i class="fa-regular fa-square text-xs mb-0.5"></i>
               <span class="text-[9px] font-pixel">RUN</span>
@@ -243,7 +244,7 @@
 
             <!-- Circle (Right / Special Action) -->
             <button id="btnCircle" 
-              class="d-btn absolute right-2 w-14 h-14 bg-red-950 border-2 border-red-500 active:bg-red-500 active:text-black text-red-400 rounded-full flex flex-col items-center justify-center text-sm font-bold shadow-lg"
+              class="d-btn absolute right-2 w-14 h-14 bg-red-950 border-2 border-red-500 active:bg-red-500 active:text-black text-red-400 rounded-full flex flex-col items-center justify-center shadow-lg"
               data-key="action">
               <i class="fa-regular fa-circle text-xs mb-0.5"></i>
               <span class="text-[9px] font-pixel">ACT</span>
@@ -251,7 +252,7 @@
 
             <!-- Cross (Bottom / Jump Secondary) -->
             <button id="btnCross" 
-              class="d-btn absolute bottom-2 w-14 h-14 bg-blue-950 border-2 border-blue-500 active:bg-blue-500 active:text-black text-blue-400 rounded-full flex flex-col items-center justify-center text-sm font-bold shadow-lg"
+              class="d-btn absolute bottom-2 w-14 h-14 bg-blue-950 border-2 border-blue-500 active:bg-blue-500 active:text-black text-blue-400 rounded-full flex flex-col items-center justify-center shadow-lg"
               data-key="jump">
               <i class="fa-solid fa-xmark text-sm mb-0.5"></i>
               <span class="text-[9px] font-pixel">JUMP</span>
@@ -262,15 +263,15 @@
 
       </div>
 
-      <!-- Landscape Orientation Hint -->
+      <!-- Landscape Orientation Tip -->
       <div class="text-center text-[10px] text-gray-500 font-mono pb-1">
-        <i class="fa-solid fa-mobile-screen-button rotate-90 mr-1"></i> Gunakan HP posisi horizontal (Landscape) untuk kenyamanan terbaik.
+        <i class="fa-solid fa-mobile-screen-button rotate-90 mr-1"></i> Posisi HP Landscape untuk kontrol optimal.
       </div>
     </div>
 
   </div>
 
-  <!-- FIREBASE IMPORTS -->
+  <!-- FIREBASE IMPORTS & BACKEND HANDLER -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -283,7 +284,88 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- Firebase Initialization ---
+    // --- Sound Effects Synthesizer (Web Audio API) ---
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      playJump() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+      }
+
+      playCoin() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
+        osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.25);
+      }
+
+      playStomp() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(30, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+      }
+
+      playVictory() {
+        this.init();
+        if (!this.ctx) return;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.type = 'square';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime + idx * 0.1);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.1 + 0.2);
+          osc.start(this.ctx.currentTime + idx * 0.1);
+          osc.stop(this.ctx.currentTime + idx * 0.1 + 0.2);
+        });
+      }
+    }
+
+    window.sfx = new SoundFX();
+
+    // --- Firebase Setup ---
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'super-mario-multidevice-app';
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
       apiKey: "demo-api-key",
@@ -301,10 +383,9 @@
     let currentUser = null;
     let currentRole = null; // 'display', 'p1', 'p2'
 
-    // Firestore paths strictly conforming to Rule 1
+    // Document reference according to Rule 1
     const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'marioRoom', 'main');
 
-    // Default room state
     const defaultState = {
       slots: { p1: false, p2: false },
       inputP1: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
@@ -312,7 +393,6 @@
       lastUpdated: serverTimestamp()
     };
 
-    // --- Auth Handlers ---
     async function initAuth() {
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -324,7 +404,6 @@
         document.getElementById('loadingOverlay').classList.add('hidden');
         document.getElementById('roleSelectScreen').classList.remove('hidden');
         
-        // Listen to Room state updates
         listenRoomState();
       } catch (err) {
         console.error("Auth error:", err);
@@ -333,7 +412,6 @@
       }
     }
 
-    // --- Realtime Sync Listeners ---
     function listenRoomState() {
       onSnapshot(roomDocRef, (snapshot) => {
         if (!snapshot.exists()) {
@@ -342,11 +420,8 @@
         }
 
         const data = snapshot.data();
-        
-        // Update Slot Locking UI on Role Selection
         updateSlotButtonsUI(data.slots || { p1: false, p2: false });
 
-        // Update Controller inputs on Laptop Display Mode
         if (currentRole === 'display') {
           if (data.inputP1) window.gameInputs.p1 = data.inputP1;
           if (data.inputP2) window.gameInputs.p2 = data.inputP2;
@@ -354,11 +429,10 @@
           updateDisplayHUD(data.slots || {});
         }
       }, (err) => {
-        console.error("Snapshot error:", err);
+        console.error("Snapshot listener error:", err);
       });
     }
 
-    // --- UI & Slot Management ---
     function updateSlotButtonsUI(slots) {
       const btnP1 = document.getElementById('btnSelectP1');
       const btnP2 = document.getElementById('btnSelectP2');
@@ -372,7 +446,7 @@
         badgeP1.className = "text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-normal";
       } else {
         btnP1.disabled = false;
-        badgeP1.innerText = "Kosong";
+        badgeP1.innerText = "Tersedia";
         badgeP1.className = "text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full font-normal";
       }
 
@@ -382,7 +456,7 @@
         badgeP2.className = "text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-normal";
       } else {
         btnP2.disabled = false;
-        badgeP2.innerText = "Kosong";
+        badgeP2.innerText = "Tersedia";
         badgeP2.className = "text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded-full font-normal";
       }
 
@@ -398,13 +472,12 @@
       currentRole = role;
 
       if (role === 'p1' || role === 'p2') {
-        // Reserve slot in Firestore
         try {
           const updatePayload = {};
           updatePayload[`slots.${role}`] = true;
           await updateDoc(roomDocRef, updatePayload);
         } catch (e) {
-          console.error("Error claiming slot:", e);
+          console.error("Error setting slot:", e);
         }
 
         document.getElementById('roleSelectScreen').classList.add('hidden');
@@ -417,11 +490,11 @@
         if (role === 'p1') {
           roleBadge.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
           roleName.innerText = "STICK P1 (MARIO)";
-          roleName.className = "font-pixel text-sm text-red-400";
+          roleName.className = "font-pixel text-xs sm:text-sm text-red-400";
         } else {
           roleBadge.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
           roleName.innerText = "STICK P2 (LUIGI)";
-          roleName.className = "font-pixel text-sm text-green-400";
+          roleName.className = "font-pixel text-xs sm:text-sm text-green-400";
         }
 
         setupControllerTouchEvents();
@@ -482,14 +555,12 @@
         ind2.className = "w-3 h-3 rounded-full bg-gray-600";
       }
 
-      // Input debugging info
       const activeP1 = Object.keys(window.gameInputs.p1).filter(k => window.gameInputs.p1[k]).join(',');
       const activeP2 = Object.keys(window.gameInputs.p2).filter(k => window.gameInputs.p2[k]).join(',');
       dbg1.innerText = activeP1 || 'IDLE';
       dbg2.innerText = activeP2 || 'IDLE';
     }
 
-    // --- Controller Touch Handlers ---
     const localInputState = { left: false, right: false, up: false, down: false, jump: false, run: false, action: false };
 
     function setupControllerTouchEvents() {
@@ -522,7 +593,6 @@
       });
     }
 
-    // Debounced low-latency state sync
     let syncTimeout = null;
     function syncInputToFirebase() {
       if (!currentRole || (currentRole !== 'p1' && currentRole !== 'p2')) return;
@@ -539,27 +609,23 @@
       }, 15);
     }
 
-    // Initialize Auth on start
     initAuth();
   </script>
 
-  <!-- HTML5 CANVAS SUPER MARIO GAME ENGINE -->
+  <!-- HTML5 CANVAS GAME ENGINE -->
   <script>
-    // Global inputs accessible by Display engine
     window.gameInputs = {
       p1: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
       p2: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false }
     };
 
-    // Keyboard controls backup for local testing on laptop
+    // Keyboard controls backup (P1: WASD, P2: Arrows)
     window.addEventListener('keydown', (e) => {
-      // P1 Keyboard Controls (WASD + Space)
       if (e.key === 'a' || e.key === 'A') window.gameInputs.p1.left = true;
       if (e.key === 'd' || e.key === 'D') window.gameInputs.p1.right = true;
       if (e.key === 'w' || e.key === 'W' || e.key === ' ') window.gameInputs.p1.jump = true;
       if (e.key === 's' || e.key === 'S') window.gameInputs.p1.down = true;
 
-      // P2 Keyboard Controls (Arrow keys)
       if (e.key === 'ArrowLeft') window.gameInputs.p2.left = true;
       if (e.key === 'ArrowRight') window.gameInputs.p2.right = true;
       if (e.key === 'ArrowUp') window.gameInputs.p2.jump = true;
@@ -580,21 +646,20 @@
 
     let canvas, ctx;
     let cameraX = 0;
-    let gameScoreP1 = 0;
-    let gameScoreP2 = 0;
     let totalCoins = 0;
+    let gameTimer = 300;
+    let timerInterval = null;
     let gameOver = false;
 
     const GRAVITY = 0.55;
-    const MAP_WIDTH = 3200;
+    const MAP_WIDTH = 3400;
 
-    // Platform & Map Elements
     let platforms = [];
     let coins = [];
     let goombas = [];
+    let koopas = [];
     let flagPole = null;
 
-    // Players Class
     class Player {
       constructor(x, y, color, hatColor, label) {
         this.x = x;
@@ -605,52 +670,49 @@
         this.height = 36;
         this.vx = 0;
         this.vy = 0;
-        this.speed = 4;
-        this.jumpPower = -11.5;
+        this.speed = 4.2;
+        this.jumpPower = -12;
         this.grounded = false;
         this.color = color;
         this.hatColor = hatColor;
         this.label = label;
         this.score = 0;
+        this.lives = 3;
         this.facing = 'right';
       }
 
       update(input) {
-        // Horizontal Movement
+        const currentSpeed = input.run ? this.speed * 1.4 : this.speed;
+
         if (input.left) {
-          this.vx = -this.speed;
+          this.vx = -currentSpeed;
           this.facing = 'left';
         } else if (input.right) {
-          this.vx = this.speed;
+          this.vx = currentSpeed;
           this.facing = 'right';
         } else {
-          this.vx *= 0.7; // Friction
+          this.vx *= 0.7;
         }
 
-        // Jump
-        if (input.jump && this.grounded) {
+        if ((input.jump || input.up) && this.grounded) {
           this.vy = this.jumpPower;
           this.grounded = false;
+          if (window.sfx) window.sfx.playJump();
         }
 
-        // Apply Gravity
         this.vy += GRAVITY;
 
-        // X Movement & Platform Collisions
         this.x += this.vx;
         this.checkCollisionX();
 
-        // Y Movement & Platform Collisions
         this.y += this.vy;
         this.checkCollisionY();
 
-        // Level boundary constraints
         if (this.x < 0) this.x = 0;
         if (this.x > MAP_WIDTH - this.width) this.x = MAP_WIDTH - this.width;
 
-        // Fall in pit check
         if (this.y > 600) {
-          this.respawn();
+          this.loseLife();
         }
       }
 
@@ -684,15 +746,23 @@
             } else if (this.vy < 0) {
               this.y = p.y + p.h;
               this.vy = 0;
-              // Hit block from below
               if (p.type === 'question' && !p.hit) {
                 p.hit = true;
                 totalCoins += 1;
                 this.score += 100;
+                if (window.sfx) window.sfx.playCoin();
               }
             }
           }
         }
+      }
+
+      loseLife() {
+        this.lives -= 1;
+        if (this.lives <= 0) {
+          this.lives = 0;
+        }
+        this.respawn();
       }
 
       respawn() {
@@ -704,34 +774,27 @@
 
       draw() {
         ctx.save();
-        
-        // Character Body (Overalls)
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x - cameraX, this.y + 12, this.width, this.height - 12);
 
-        // Character Shirt
         ctx.fillStyle = this.hatColor;
         ctx.fillRect(this.x - cameraX + 3, this.y + 10, this.width - 6, 12);
 
-        // Character Head / Face
         ctx.fillStyle = '#ffcc99';
         ctx.fillRect(this.x - cameraX + 2, this.y, this.width - 4, 12);
 
-        // Cap / Hat
         ctx.fillStyle = this.hatColor;
         ctx.fillRect(this.x - cameraX, this.y - 2, this.width, 6);
 
-        // Eyes / Mustache direction
         ctx.fillStyle = '#000';
         if (this.facing === 'right') {
           ctx.fillRect(this.x - cameraX + 14, this.y + 4, 4, 3);
-          ctx.fillRect(this.x - cameraX + 12, this.y + 8, 8, 3); // Mustache
+          ctx.fillRect(this.x - cameraX + 12, this.y + 8, 8, 3);
         } else {
           ctx.fillRect(this.x - cameraX + 6, this.y + 4, 4, 3);
           ctx.fillRect(this.x - cameraX + 4, this.y + 8, 8, 3);
         }
 
-        // Label (P1 / P2)
         ctx.font = '9px "Press Start 2P"';
         ctx.fillStyle = '#ffffff';
         ctx.fillText(this.label, this.x - cameraX + 2, this.y - 8);
@@ -740,7 +803,6 @@
       }
     }
 
-    // Goomba Enemy Class
     class Goomba {
       constructor(x, y) {
         this.x = x;
@@ -755,7 +817,6 @@
         if (!this.alive) return;
         this.x += this.vx;
 
-        // Reverse direction on wall hit
         for (let p of platforms) {
           if (
             this.x < p.x + p.w &&
@@ -770,10 +831,9 @@
 
       draw() {
         if (!this.alive) return;
-        ctx.fillStyle = '#8B4513'; // Brown body
+        ctx.fillStyle = '#8B4513';
         ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
         
-        // Goomba eyes
         ctx.fillStyle = '#fff';
         ctx.fillRect(this.x - cameraX + 3, this.y + 6, 5, 8);
         ctx.fillRect(this.x - cameraX + 14, this.y + 6, 5, 8);
@@ -783,35 +843,86 @@
       }
     }
 
+    class Koopa {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 24;
+        this.height = 32;
+        this.vx = -1.8;
+        this.alive = true;
+      }
+
+      update() {
+        if (!this.alive) return;
+        this.x += this.vx;
+
+        for (let p of platforms) {
+          if (
+            this.x < p.x + p.w &&
+            this.x + this.width > p.x &&
+            this.y < p.y + p.h &&
+            this.y + this.height > p.y
+          ) {
+            this.vx *= -1;
+          }
+        }
+      }
+
+      draw() {
+        if (!this.alive) return;
+        ctx.fillStyle = '#00a800'; // Green shell
+        ctx.fillRect(this.x - cameraX, this.y + 10, this.width, this.height - 10);
+        
+        ctx.fillStyle = '#ffcc99'; // Head
+        ctx.fillRect(this.x - cameraX + 2, this.y, 14, 12);
+      }
+    }
+
     let p1, p2;
 
     window.initGameEngine = function() {
       canvas = document.getElementById('gameCanvas');
       ctx = canvas.getContext('2d');
       
-      // Fixed Virtual Canvas Resolution 16:9 ratio
       canvas.width = 960;
       canvas.height = 540;
 
       buildLevel();
 
-      p1 = new Player(80, 300, '#0000ff', '#ff0000', 'P1'); // Mario (Red Cap)
-      p2 = new Player(120, 300, '#0000ff', '#00cc00', 'P2'); // Luigi (Green Cap)
+      p1 = new Player(80, 300, '#0000ff', '#ff0000', 'P1');
+      p2 = new Player(120, 300, '#0000ff', '#00cc00', 'P2');
 
+      startTimer();
       requestAnimationFrame(gameLoop);
     };
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      gameTimer = 300;
+      timerInterval = setInterval(() => {
+        if (!gameOver) {
+          gameTimer--;
+          document.getElementById('timerVal').innerText = gameTimer;
+          if (gameTimer <= 0) {
+            triggerGameOver("WAKTU HABIS!");
+          }
+        }
+      }, 1000);
+    }
 
     function buildLevel() {
       platforms = [];
       coins = [];
       goombas = [];
+      koopas = [];
 
-      // Ground segments
+      // Ground
       platforms.push({ x: 0, y: 460, w: 1200, h: 80, type: 'ground' });
       platforms.push({ x: 1320, y: 460, w: 900, h: 80, type: 'ground' });
-      platforms.push({ x: 2300, y: 460, w: 1000, h: 80, type: 'ground' });
+      platforms.push({ x: 2300, y: 460, w: 1100, h: 80, type: 'ground' });
 
-      // Brick & Question Blocks
+      // Blocks
       const blocks = [
         { x: 300, y: 340, type: 'question' },
         { x: 350, y: 340, type: 'brick' },
@@ -850,7 +961,7 @@
         { x: 1665, y: 280, collected: false }
       ];
 
-      // Goombas
+      // Enemies
       goombas = [
         new Goomba(500, 436),
         new Goomba(900, 436),
@@ -858,8 +969,13 @@
         new Goomba(2500, 436)
       ];
 
-      // Flag pole victory
-      flagPole = { x: 3000, y: 180, w: 10, h: 280 };
+      koopas = [
+        new Koopa(1100, 428),
+        new Koopa(2000, 428)
+      ];
+
+      // Flagpole
+      flagPole = { x: 3100, y: 180, w: 10, h: 280 };
     }
 
     function gameLoop() {
@@ -872,19 +988,15 @@
     }
 
     function updatePhysics() {
-      // Update players with synchronized inputs
       p1.update(window.gameInputs.p1);
       p2.update(window.gameInputs.p2);
 
-      // Camera follows the average position of players
       const avgX = (p1.x + p2.x) / 2;
       cameraX = Math.max(0, Math.min(avgX - canvas.width / 2 + 100, MAP_WIDTH - canvas.width));
 
-      // Update Goombas & Enemy Collisions
+      // Goomba collisions
       goombas.forEach(g => {
         g.update();
-
-        // Player vs Goomba Collisions
         [p1, p2].forEach(p => {
           if (
             g.alive &&
@@ -893,20 +1005,42 @@
             p.y < g.y + g.height &&
             p.y + p.height > g.y
           ) {
-            // Jump on top of Goomba
             if (p.vy > 0 && p.y + p.height - p.vy <= g.y + 10) {
               g.alive = false;
               p.vy = -7;
               p.score += 200;
+              if (window.sfx) window.sfx.playStomp();
             } else {
-              // Player gets hit / respawns
-              p.respawn();
+              p.loseLife();
             }
           }
         });
       });
 
-      // Coin Pickups
+      // Koopa collisions
+      koopas.forEach(k => {
+        k.update();
+        [p1, p2].forEach(p => {
+          if (
+            k.alive &&
+            p.x < k.x + k.width &&
+            p.x + p.width > k.x &&
+            p.y < k.y + k.height &&
+            p.y + p.height > k.y
+          ) {
+            if (p.vy > 0 && p.y + p.height - p.vy <= k.y + 10) {
+              k.alive = false;
+              p.vy = -7;
+              p.score += 300;
+              if (window.sfx) window.sfx.playStomp();
+            } else {
+              p.loseLife();
+            }
+          }
+        });
+      });
+
+      // Coins
       coins.forEach(c => {
         if (!c.collected) {
           [p1, p2].forEach(p => {
@@ -919,30 +1053,33 @@
               c.collected = true;
               totalCoins += 1;
               p.score += 100;
+              if (window.sfx) window.sfx.playCoin();
             }
           });
         }
       });
 
-      // Check Flagpole Victory
+      // Check Flagpole
       [p1, p2].forEach(p => {
         if (p.x >= flagPole.x) {
           triggerVictory(p);
         }
       });
 
-      // Update HUD elements
+      // Update HUD
       document.getElementById('scoreP1').innerText = String(p1.score).padStart(4, '0');
       document.getElementById('scoreP2').innerText = String(p2.score).padStart(4, '0');
+      document.getElementById('livesP1').innerText = p1.lives;
+      document.getElementById('livesP2').innerText = p2.lives;
       document.getElementById('coinCount').innerText = totalCoins;
     }
 
     function render() {
-      // Clear Sky Background
+      // Sky
       ctx.fillStyle = '#5c94fc';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Render Clouds / Decorative
+      // Clouds
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.beginPath();
       ctx.arc(200 - cameraX * 0.3, 100, 30, 0, Math.PI * 2);
@@ -950,12 +1087,11 @@
       ctx.arc(260 - cameraX * 0.3, 100, 30, 0, Math.PI * 2);
       ctx.fill();
 
-      // Render Platforms & Blocks
+      // Platforms
       platforms.forEach(p => {
         if (p.type === 'ground') {
           ctx.fillStyle = '#c84c0c';
           ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-          // Top grass line
           ctx.fillStyle = '#00a800';
           ctx.fillRect(p.x - cameraX, p.y, p.w, 12);
         } else if (p.type === 'brick') {
@@ -970,8 +1106,8 @@
           ctx.strokeRect(p.x - cameraX, p.y, p.w, p.h);
           if (!p.hit) {
             ctx.fillStyle = '#000';
-            ctx.font = 'bold 16px font-pixel';
-            ctx.fillText('?', p.x - cameraX + 10, p.y + 22);
+            ctx.font = 'bold 16px "Press Start 2P"';
+            ctx.fillText('?', p.x - cameraX + 8, p.y + 22);
           }
         } else if (p.type === 'pipe') {
           ctx.fillStyle = '#00a800';
@@ -983,7 +1119,7 @@
         }
       });
 
-      // Render Coins
+      // Coins
       coins.forEach(c => {
         if (!c.collected) {
           ctx.fillStyle = '#ffd700';
@@ -993,14 +1129,13 @@
         }
       });
 
-      // Render Flag Pole
+      // Flag Pole
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(flagPole.x - cameraX, flagPole.y, flagPole.w, flagPole.h);
       ctx.fillStyle = '#00a800';
       ctx.beginPath();
       ctx.arc(flagPole.x - cameraX + 5, flagPole.y, 12, 0, Math.PI * 2);
       ctx.fill();
-      // Flag
       ctx.fillStyle = '#ff0000';
       ctx.beginPath();
       ctx.moveTo(flagPole.x - cameraX + 10, flagPole.y + 10);
@@ -1008,16 +1143,20 @@
       ctx.lineTo(flagPole.x - cameraX + 10, flagPole.y + 50);
       ctx.fill();
 
-      // Render Goombas
+      // Enemies
       goombas.forEach(g => g.draw());
+      koopas.forEach(k => k.draw());
 
-      // Render Players
+      // Players
       p1.draw();
       p2.draw();
     }
 
     function triggerVictory(winner) {
       gameOver = true;
+      clearInterval(timerInterval);
+      if (window.sfx) window.sfx.playVictory();
+
       const modal = document.getElementById('gameModal');
       const title = document.getElementById('modalTitle');
       const desc = document.getElementById('modalDesc');
@@ -1027,13 +1166,31 @@
       modal.classList.remove('hidden');
     }
 
+    function triggerGameOver(reason) {
+      gameOver = true;
+      clearInterval(timerInterval);
+
+      const modal = document.getElementById('gameModal');
+      const title = document.getElementById('modalTitle');
+      const desc = document.getElementById('modalDesc');
+
+      title.innerText = "GAME OVER";
+      desc.innerText = `${reason} Silakan coba lagi!`;
+      modal.classList.remove('hidden');
+    }
+
     window.restartGameEngine = function() {
       gameOver = false;
       document.getElementById('gameModal').classList.add('hidden');
       buildLevel();
       p1.respawn();
       p2.respawn();
+      p1.lives = 3;
+      p2.lives = 3;
+      p1.score = 0;
+      p2.score = 0;
       totalCoins = 0;
+      startTimer();
       requestAnimationFrame(gameLoop);
     };
   </script>
