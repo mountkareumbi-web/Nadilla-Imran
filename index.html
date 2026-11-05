@@ -2,610 +2,303 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Our Love Odyssey - Nadilla & Muhammad Dede Imran</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Love Odyssey - Nadilla & Imran</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        serif: ['"Playfair Display"', 'serif'],
-                    },
-                    colors: {
-                        roseGold: {
-                            50: '#fff1f2',
-                            100: '#ffe4e6',
-                            300: '#fda4af',
-                            500: '#f43f5e',
-                            600: '#e11d48',
-                            700: '#be123c',
-                            900: '#881337',
-                        },
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sacramento&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #1a051d 0%, #311026 50%, #4a1525 100%);
-            color: #f3f4f6;
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 50%, #fecdd3 100%);
             min-height: 100vh;
+            color: #4c0519;
             overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
         }
-        .romantic-glow {
-            box-shadow: 0 0 25px rgba(244, 63, 94, 0.4);
+        .font-script {
+            font-family: 'Sacramento', cursive;
         }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
-        .glass-card {
-            background: rgba(30, 10, 25, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(244, 63, 94, 0.2);
+        .heart-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
         }
-        @keyframes floatHeart {
-            0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+        .floating-heart {
+            position: absolute;
+            color: rgba(244, 63, 94, 0.2);
+            animation: floatUp 8s linear infinite;
+            bottom: -50px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
             20% { opacity: 0.8; }
-            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+            100% { transform: translateY(-105vh) rotate(360deg) scale(1.3); opacity: 0; }
         }
-        .pulse-slow {
-            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .pulse-glow {
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.4);
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(244, 63, 94, 0.6); }
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen relative selection:bg-rose-500 selection:text-white">
+<body class="relative flex flex-col items-center justify-between min-h-screen p-4 sm:p-6">
 
-    <!-- Floating Background Canvas for Petals/Hearts -->
-    <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+    <!-- Floating Background Hearts -->
+    <div class="heart-bg" id="heartBg"></div>
 
-    <!-- App Container -->
-    <div id="app" class="relative z-10 flex flex-col flex-grow max-w-md mx-auto w-full p-4 justify-between">
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-md mx-auto z-10 flex flex-col flex-grow justify-between">
 
-        <!-- Header -->
-        <header class="flex justify-between items-center py-3 border-b border-rose-500/20 mb-4">
-            <div class="flex items-center space-x-2">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center shadow-lg pulse-slow">
-                    <i class="fa-solid fa-heart text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-serif font-bold text-lg text-rose-200 tracking-wide" id="headerTitle">Nadilla & Imran</h1>
-                    <p class="text-xs text-rose-400 font-medium" id="connectionStatus"><i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Terhubung Otomatis</p>
-                </div>
-            </div>
-            <div id="headerControls" class="flex space-x-2">
-                <button onclick="playSound('click')" id="soundToggleBtn" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-rose-300 hover:text-white transition">
-                    <i class="fa-solid fa-volume-high text-sm"></i>
-                </button>
-                <button onclick="resetPlayerSelection()" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-rose-300 hover:text-white transition" title="Ganti Nama">
-                    <i class="fa-solid fa-user-swap text-sm"></i>
-                </button>
-            </div>
+        <!-- HEADER / NAVBAR -->
+        <header class="text-center py-4">
+            <h1 class="font-script text-4xl sm:text-5xl text-rose-600 font-bold drop-shadow-sm">Our Love Odyssey</h1>
+            <p class="text-xs sm:text-sm font-semibold tracking-wider text-rose-800 uppercase mt-1">Nadilla & Imran</p>
         </header>
 
-        <!-- Main Content Dynamic View -->
-        <main id="mainContent" class="flex-grow flex flex-col justify-center pb-6">
-            <!-- Dynamic Screen Injected Here -->
-        </main>
+        <!-- SCREEN 1: PILIH PLAYER -->
+        <div id="screen-login" class="glass rounded-3xl p-6 sm:p-8 shadow-xl text-center my-auto transition-all duration-300">
+            <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner">
+                💖
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-rose-900 mb-2">Siapa Kamu Hari Ini?</h2>
+            <p class="text-xs sm:text-sm text-rose-700 mb-6">Pilih namamu di bawah untuk masuk ke dunia cinta kita berdua secara instan!</p>
+            
+            <div class="space-y-3">
+                <button onclick="selectPlayer('Nadilla')" class="w-full py-3.5 px-6 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <span>🌸</span>
+                    <span>Nadilla (14 Des 2008)</span>
+                </button>
+                <button onclick="selectPlayer('Imran')" class="w-full py-3.5 px-6 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <span>👑</span>
+                    <span>Muhammad Dede Imran (6 Agt 2002)</span>
+                </button>
+            </div>
+        </div>
 
-        <!-- Footer -->
-        <footer class="text-center py-2 text-[11px] text-rose-300/60 font-medium">
-            Dibuat dengan ❤️ penuh cinta abadi untuk Nadilla & Muhammad Dede Imran
+        <!-- SCREEN 2: GAME DASHBOARD -->
+        <div id="screen-game" class="hidden flex-col space-y-4 my-auto">
+            
+            <!-- BIODATA & LIVE COUNTER CARD -->
+            <div class="glass rounded-3xl p-5 shadow-lg border border-rose-200 text-center relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 text-7xl opacity-10">❤️</div>
+                <div class="text-xs uppercase tracking-widest text-rose-600 font-bold mb-1">Status Perjalanan Cinta</div>
+                <h3 class="text-xl font-extrabold text-rose-900 mb-2">Nadilla & Imran</h3>
+                <div class="bg-rose-50/80 rounded-2xl p-3 border border-rose-100 mb-2">
+                    <p class="text-xs text-rose-700 font-medium">Hubungan saat ini sudah:</p>
+                    <p id="counter-days" class="text-2xl sm:text-3xl font-black text-rose-600 mt-1">... Hari</p>
+                    <p class="text-[10px] text-rose-500 mt-1">Sejak berpasangan pada 20 Juli 2026</p>
+                </div>
+                <div class="flex justify-around text-[11px] text-rose-800 font-semibold pt-1 border-t border-rose-100">
+                    <span>🌸 Nadilla (14 Des '08)</span>
+                    <span>•</span>
+                    <span>👑 Imran (6 Agt '02)</span>
+                </div>
+            </div>
+
+            <!-- MENU UTAMA / FITUR GAME -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="openModal('quiz')" class="glass hover:bg-white/90 p-4 rounded-2xl shadow-md border border-rose-100 text-center transition transform active:scale-95 flex flex-col items-center">
+                    <span class="text-3xl mb-1">🎯</span>
+                    <span class="font-bold text-sm text-rose-900">Kuis Sejoli</span>
+                    <span class="text-[10px] text-rose-600">Seberapa jauh kenal?</span>
+                </button>
+                <button onclick="openModal('love-note')" class="glass hover:bg-white/90 p-4 rounded-2xl shadow-md border border-rose-100 text-center transition transform active:scale-95 flex flex-col items-center">
+                    <span class="text-3xl mb-1">💌</span>
+                    <span class="font-bold text-sm text-rose-900">Surat Rahasia</span>
+                    <span class="text-[10px] text-rose-600">Pesan cinta harian</span>
+                </button>
+                <button onclick="openModal('mission')" class="glass hover:bg-white/90 p-4 rounded-2xl shadow-md border border-rose-100 text-center transition transform active:scale-95 flex flex-col items-center">
+                    <span class="text-3xl mb-1">🌟</span>
+                    <span class="font-bold text-sm text-rose-900">Misi Cinta</span>
+                    <span class="text-[10px] text-rose-600">Tantangan seru berdua</span>
+                </button>
+                <button onclick="openModal('certificate')" class="glass hover:bg-white/90 p-4 rounded-2xl shadow-md border border-rose-100 text-center transition transform active:scale-95 flex flex-col items-center">
+                    <span class="text-3xl mb-1">📜</span>
+                    <span class="font-bold text-sm text-rose-900">Sertifikat</span>
+                    <span class="text-[10px] text-rose-600">Bukti resmi pasangan</span>
+                </button>
+            </div>
+
+            <!-- QUICK LOVE BUTTON -->
+            <button onclick="sendLovePulse()" class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-lg pulse-glow transition transform active:scale-95 flex items-center justify-center space-x-2">
+                <span>⚡</span>
+                <span id="btn-pulse-text">Kirim Denyut Cinta ke Pasangan</span>
+            </button>
+
+            <div class="text-center pt-2">
+                <button onclick="switchPlayer()" class="text-xs text-rose-600 underline font-semibold">Ganti Player (Masuk sebagai <span id="current-player-label"></span>)</button>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="text-center py-4 text-xs text-rose-700 font-medium">
+            Made with 💖 for Nadilla & Imran
         </footer>
+
     </div>
 
-    <!-- Notification Modal -->
-    <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-card w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border border-rose-500/30 transform transition-all scale-95 opacity-0" id="modalContainer">
-            <div id="modalIcon" class="w-16 h-16 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-heart"></i>
+    <!-- MODAL POPUP CONTAINER -->
+    <div id="modal-container" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass w-full max-w-sm rounded-3xl p-6 shadow-2xl relative border border-rose-300 max-h-[85vh] overflow-y-auto">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-rose-100 text-rose-800 font-bold flex items-center justify-center hover:bg-rose-200">✕</button>
+            <div id="modal-content">
+                <!-- Konten Modal Dinamis -->
             </div>
-            <h3 id="modalTitle" class="font-serif font-bold text-xl text-white mb-2">Pemberitahuan Cinta</h3>
-            <p id="modalMessage" class="text-rose-200/80 text-sm mb-6 leading-relaxed">Pesan romantis di sini...</p>
-            <button onclick="closeModal()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-semibold rounded-2xl shadow-lg shadow-rose-600/30 hover:opacity-95 transition">
-                Tutup & Lanjutkan
-            </button>
         </div>
     </div>
 
-    <!-- Application Logic -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- Web Audio Synthesizer for Romantic Sound FX ---
-        let audioCtx = null;
-        let soundEnabled = true;
+        let currentPlayer = localStorage.getItem('odyssey_player') || null;
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Inisialisasi Floating Hearts
+        function createHearts() {
+            const bg = document.getElementById('heartBg');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('floating-heart');
+                heart.innerHTML = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (6 + Math.random() * 6) + 's';
+                heart.style.animationDelay = (Math.random() * 5) + 's';
+                heart.style.fontSize = (12 + Math.random() * 20) + 'px';
+                bg.appendChild(heart);
+            }
+        }
+        createHearts();
+
+        // Hitung Hari Jadian Otomatis (20 Juli 2026)
+        function updateDaysCounter() {
+            const startDate = new Date('2026-07-20T00:00:00');
+            const today = new Date();
+            // Reset waktu untuk hitungan hari penuh
+            const diffTime = today.setHours(0,0,0,0) - startDate.setHours(0,0,0,0);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            const counterEl = document.getElementById('counter-days');
+            if (counterEl) {
+                counterEl.innerText = diffDays >= 0 ? `${diffDays} Hari` : `0 Hari`;
             }
         }
 
-        function playSound(type) {
-            if (!soundEnabled) return;
-            try {
-                initAudio();
-                if(!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-
-                if (type === 'click') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(587.33, now); // D5
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (type === 'love') {
-                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.type = 'triangle';
-                        o.frequency.setValueAtTime(freq, now + idx * 0.05);
-                        g.gain.setValueAtTime(0.08, now + idx * 0.05);
-                        g.gain.exponentialRampToValueAtTime(0.001, now + 0.6 + idx * 0.05);
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.start(now + idx * 0.05);
-                        o.stop(now + 0.7 + idx * 0.05);
-                    });
-                } else if (type === 'success') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.setValueAtTime(554.37, now + 0.1);
-                    osc.frequency.setValueAtTime(659.25, now + 0.2);
-                    osc.frequency.setValueAtTime(880, now + 0.3);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                    osc.start(now);
-                    osc.stop(now + 0.5);
-                }
-            } catch (e) {
-                console.log("Audio blocked or not supported", e);
+        // Cek Session saat Load
+        window.onload = function() {
+            updateDaysCounter();
+            if (currentPlayer) {
+                showGameDashboard();
             }
-        }
-
-        // --- Global State ---
-        const State = {
-            playerName: localStorage.getItem('love_player_name') || '',
-            partnerName: localStorage.getItem('love_partner_name') || '',
-            currentScreen: localStorage.getItem('love_player_name') ? 'dashboard' : 'welcome',
-            score: parseInt(localStorage.getItem('love_score') || '90'),
-            activeTab: 'menu', // menu, quiz, charades, daily, vault, certificate
-            quizIndex: 0,
-            quizScore: 0,
-            charadesWord: 'C I N T A',
-            vaultMessages: JSON.parse(localStorage.getItem('love_vault') || JSON.stringify([
-                {sender: 'Muhammad Dede Imran', text: 'Sayang, terima kasih selalu menemaniku setiap hari! ❤️', time: 'Kemarin'},
-                {sender: 'Nadilla', text: 'I love you too Dede! Kamu adalah duniaku ✨', time: 'Hari ini'}
-            ])),
-            dailyMissions: [
-                {id: 1, title: 'Kirimkan Selfie Senyum Manis', desc: 'Foto senyum tercantikmu saat ini dan kirim ke pasangan!', completed: false},
-                {id: 2, title: 'Kirim Voice Note "Aku Sayang Kamu"', desc: 'Ucapkan kata sayang dengan suara paling mesra.', completed: false},
-                {id: 3, title: 'Doa Bersama untuk Masa Depan', desc: 'Saling mendoakan agar hubungan senantiasa diberkahi hingga pelaminan.', completed: false}
-            ]
         };
 
-        // --- Background Floating Hearts Animation ---
-        const canvas = document.getElementById('bgCanvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = canvas.height + 20;
-                this.size = Math.random() * 10 + 6;
-                this.speedY = Math.random() * 1.5 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 1;
-                this.rotation = Math.random() * 360;
-                this.rotSpeed = (Math.random() - 0.5) * 2;
-                this.color = Math.random() > 0.5 ? 'rgba(244, 63, 94, 0.4)' : 'rgba(236, 72, 153, 0.3)';
-            }
-            update() {
-                this.y -= this.speedY;
-                this.x += this.speedX + Math.sin(this.y * 0.02) * 0.5;
-                this.rotation += this.rotSpeed;
-                if (this.y < -30) this.reset();
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate((this.rotation * Math.PI) / 180);
-                ctx.fillStyle = this.color;
-                ctx.font = `${this.size}px FontAwesome`;
-                ctx.fillText('❤', 0, 0);
-                ctx.restore();
-            }
+        function selectPlayer(name) {
+            currentPlayer = name;
+            localStorage.setItem('odyssey_player', name);
+            showGameDashboard();
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
         }
 
-        for (let i = 0; i < 25; i++) {
-            particles.push(new Particle());
+        function switchPlayer() {
+            localStorage.removeItem('odyssey_player');
+            currentPlayer = null;
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-login').classList.remove('hidden');
         }
 
-        function animateBg() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animateBg);
+        function showGameDashboard() {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('screen-game').classList.add('flex');
+            document.getElementById('current-player-label').innerText = currentPlayer === 'Nadilla' ? 'Imran' : 'Nadilla';
+            updateDaysCounter();
         }
-        animateBg();
 
-        // --- Modal Helper ---
-        function showModal(title, message, iconClass = 'fa-solid fa-heart') {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalMessage').innerText = message;
-            document.getElementById('modalIcon').innerHTML = `<i class="${iconClass}"></i>`;
-            const modal = document.getElementById('customModal');
-            const container = document.getElementById('modalContainer');
-            modal.classList.remove('hidden');
+        // Quick Love Pulse Effect
+        function sendLovePulse() {
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+            const btnText = document.getElementById('btn-pulse-text');
+            const oldText = btnText.innerText;
+            btnText.innerText = "💖 Denyut Cinta Terkirim ke Pasangan! 💖";
             setTimeout(() => {
-                container.classList.remove('scale-95', 'opacity-0');
-                container.classList.add('scale-100', 'opacity-100');
-            }, 10);
-            playSound('love');
+                btnText.innerText = oldText;
+            }, 2500);
+        }
+
+        // Modal Handler
+        function openModal(type) {
+            const container = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            container.classList.remove('hidden');
+
+            if (type === 'quiz') {
+                content.innerHTML = `
+                    <h3 class="text-xl font-bold text-rose-900 mb-3 text-center">🎯 Kuis Sejoli Nadilla & Imran</h3>
+                    <p class="text-xs text-rose-700 mb-4 text-center">Uji seberapa sehati kalian berdua!</p>
+                    <div class="space-y-4">
+                        <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100">
+                            <p class="text-xs font-bold text-rose-900 mb-2">1. Siapa yang paling sering ngambek tapi cepet luluh?</p>
+                            <button onclick="alert('Jawaban tersimpan! Kalian memang pasangan paling serasi! 🥰')" class="w-full py-2 bg-rose-500 text-white rounded-xl text-xs font-bold mb-1">Nadilla</button>
+                            <button onclick="alert('Jawaban tersimpan! Kalian memang pasangan paling serasi! 🥰')" class="w-full py-2 bg-pink-500 text-white rounded-xl text-xs font-bold">Imran</button>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'love-note') {
+                content.innerHTML = `
+                    <h3 class="text-xl font-bold text-rose-900 mb-3 text-center">💌 Surat Cinta Harian</h3>
+                    <p class="text-xs text-rose-700 mb-3 text-center">Pesan spesial untuk ${currentPlayer === 'Nadilla' ? 'Imran' : 'Nadilla'}:</p>
+                    <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-900 text-sm italic leading-relaxed mb-4">
+                        "Terima kasih sudah berjalan bersama dalam lembaran baru kisah cinta kita sejak 20 Juli 2026. Semoga hari-hariku dan harimu selalu dipenuhi senyuman dan kebahagiaan."
+                    </div>
+                    <button onclick="closeModal()" class="w-full py-2.5 bg-rose-500 text-white font-bold rounded-xl text-sm">Tutup Surat</button>
+                `;
+            } else if (type === 'mission') {
+                content.innerHTML = `
+                    <h3 class="text-xl font-bold text-rose-900 mb-3 text-center">🌟 Misi Cinta Hari Ini</h3>
+                    <div class="space-y-3 text-xs text-rose-800">
+                        <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100">
+                            <p class="font-bold mb-1">✨ Tantangan Romantis:</p>
+                            <p>Kirimkan foto senyum tercantikmu hari ini ke WhatsApp pasanganmu sekarang juga!</p>
+                        </div>
+                        <div class="p-3 bg-rose-50 rounded-2xl border border-rose-100">
+                            <p class="font-bold mb-1">✨ Kata Spesial:</p>
+                            <p>Katakan "Aku sayang kamu" sebelum tidur malam ini.</p>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'certificate') {
+                const startDate = new Date('2026-07-20T00:00:00');
+                const today = new Date();
+                const diffDays = Math.floor((today.setHours(0,0,0,0) - startDate.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
+                
+                content.innerHTML = `
+                    <div class="text-center border-4 border-rose-300 p-4 rounded-3xl bg-white/60">
+                        <span class="text-3xl">🏆</span>
+                        <h4 class="font-script text-3xl text-rose-600 font-bold mt-1">Sertifikat Cinta Sejati</h4>
+                        <p class="text-[10px] text-rose-700 uppercase tracking-widest mt-1">Diberikan secara resmi kepada:</p>
+                        <p class="text-base font-extrabold text-rose-900 my-1">Nadilla & Imran</p>
+                        <p class="text-xs text-rose-600 mb-3">Telah sah menjalin hubungan indah selama <span class="font-bold">${diffDays >= 0 ? diffDays : 0} hari</span> sejak 20 Juli 2026.</p>
+                        <div class="text-[10px] text-rose-500 italic border-t border-rose-200 pt-2">"Bersama mengukir cerita cinta abadi."</div>
+                    </div>
+                `;
+            }
         }
 
         function closeModal() {
-            const container = document.getElementById('modalContainer');
-            container.classList.remove('scale-100', 'opacity-100');
-            container.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                document.getElementById('customModal').classList.add('hidden');
-            }, 200);
+            document.getElementById('modal-container').classList.add('hidden');
         }
-
-        // --- Screen Router & Selection Handler ---
-        function renderScreen() {
-            const main = document.getElementById('mainContent');
-            main.innerHTML = '';
-
-            if (State.currentScreen === 'welcome') {
-                main.innerHTML = `
-                    <div class="text-center space-y-6 my-auto">
-                        <div class="relative w-32 h-32 mx-auto">
-                            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-rose-600 to-pink-400 blur-xl opacity-50 pulse-slow"></div>
-                            <div class="relative w-32 h-32 rounded-full glass-panel border-2 border-rose-500/50 flex items-center justify-center mx-auto shadow-2xl">
-                                <i class="fa-solid fa-ring text-5xl text-rose-300"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h2 class="font-serif font-bold text-3xl text-white mb-2">Our Love Odyssey</h2>
-                            <p class="text-xs text-rose-200/80 max-w-xs mx-auto">Pilih siapa kamu di HP ini untuk mulai terhubung otomatis berdua.</p>
-                        </div>
-                        
-                        <div class="space-y-3 pt-2">
-                            <p class="text-xs font-bold text-rose-300 uppercase tracking-widest">Siapa yang memegang HP ini?</p>
-                            <button onclick="selectPlayer('Nadilla')" class="w-full py-4 px-6 rounded-2xl glass-card border-2 border-rose-500/40 hover:border-rose-400 hover:bg-rose-500/20 transition flex items-center justify-between group shadow-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-crown"></i></div>
-                                    <span class="font-serif font-bold text-xl text-white group-hover:text-rose-200">Nadilla</span>
-                                </div>
-                                <i class="fa-solid fa-arrow-right text-rose-400"></i>
-                            </button>
-
-                            <button onclick="selectPlayer('Muhammad Dede Imran')" class="w-full py-4 px-6 rounded-2xl glass-card border-2 border-rose-500/40 hover:border-rose-400 hover:bg-rose-500/20 transition flex items-center justify-between group shadow-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-heart"></i></div>
-                                    <span class="font-serif font-bold text-xl text-white group-hover:text-rose-200">Muhammad Dede Imran</span>
-                                </div>
-                                <i class="fa-solid fa-arrow-right text-rose-400"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } else if (State.currentScreen === 'dashboard') {
-                renderDashboardContent(main);
-            }
-        }
-
-        function selectPlayer(name) {
-            State.playerName = name;
-            State.partnerName = (name === 'Nadilla') ? 'Muhammad Dede Imran' : 'Nadilla';
-            
-            localStorage.setItem('love_player_name', State.playerName);
-            localStorage.setItem('love_partner_name', State.partnerName);
-
-            State.currentScreen = 'dashboard';
-            playSound('success');
-            renderScreen();
-        }
-
-        function resetPlayerSelection() {
-            localStorage.removeItem('love_player_name');
-            localStorage.removeItem('love_partner_name');
-            State.playerName = '';
-            State.partnerName = '';
-            State.currentScreen = 'welcome';
-            playSound('click');
-            renderScreen();
-        }
-
-        function renderDashboardContent(container) {
-            let activeHtml = '';
-
-            if (State.activeTab === 'menu') {
-                activeHtml = `
-                    <div class="space-y-4 my-auto">
-                        <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden border border-rose-500/30 shadow-xl">
-                            <div class="absolute -right-10 -top-10 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl"></div>
-                            <h3 class="font-serif font-bold text-2xl text-white mb-1">Halo, ${State.playerName}! ❤️</h3>
-                            <p class="text-xs text-rose-200/80 mb-4">Terhubung indah dengan <span class="text-rose-400 font-bold">${State.partnerName}</span></p>
-                            <div class="flex justify-around items-center bg-black/30 rounded-2xl p-4 border border-rose-500/20">
-                                <div class="text-center">
-                                    <p class="text-[10px] text-rose-300 font-semibold uppercase">Skor Cintamu</p>
-                                    <p class="text-2xl font-black text-rose-400">${State.score}%</p>
-                                </div>
-                                <div class="w-px h-8 bg-rose-500/30"></div>
-                                <div class="text-center">
-                                    <p class="text-[10px] text-rose-300 font-semibold uppercase">Status Sesi</p>
-                                    <p class="text-xs font-bold text-emerald-400 mt-1"><i class="fa-solid fa-wifi mr-1"></i> Terhubung Berdua</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="switchTab('quiz')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
-                                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                                    <i class="fa-solid fa-puzzle-piece"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-white">Kuis Sejoli</h4>
-                                <p class="text-[11px] text-rose-200/70">Uji seberapa kenal kalian.</p>
-                            </button>
-
-                            <button onclick="switchTab('charades')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
-                                <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                                    <i class="fa-solid fa-comments"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-white">Love Charades</h4>
-                                <p class="text-[11px] text-rose-200/70">Tebak kata mesra berdua.</p>
-                            </button>
-
-                            <button onclick="switchTab('daily')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
-                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                                    <i class="fa-solid fa-calendar-check"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-white">Misi Cinta</h4>
-                                <p class="text-[11px] text-rose-200/70">Tantangan harian romantis.</p>
-                            </button>
-
-                            <button onclick="switchTab('vault')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
-                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                                    <i class="fa-solid fa-vault"></i>
-                                </div>
-                                <h4 class="font-bold text-sm text-white">Love Vault</h4>
-                                <p class="text-[11px] text-rose-200/70">Surat & pesan kenangan.</p>
-                            </button>
-                        </div>
-
-                        <button onclick="switchTab('certificate')" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-rose-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-600/20 hover:opacity-95 transition flex items-center justify-center space-x-2 text-sm">
-                            <i class="fa-solid fa-certificate"></i>
-                            <span>Lihat Sertifikat Cinta Resmi</span>
-                        </button>
-                    </div>
-                `;
-            } else if (State.activeTab === 'quiz') {
-                const quizQuestions = [
-                    {q: "Apa makanan kesukaan pasanganmu saat kencan?", options: ["Sate Ayam", "Pizza/Burger", "Bakso & Mie Ayam", "Seafood Mewah"], ans: 2},
-                    {q: "Di mana pertama kali kalian merasa paling klop?", options: ["Chatting larut malam", "Ketemu langsung", "Lewat teman", "Nongkrong bareng"], ans: 0},
-                    {q: "Apa panggilan sayang favorit kalian?", options: ["Sayang / Yang", "Beb / Honey", "Nama panggilan khusus", "Ayah / Bunda"], ans: 0},
-                    {q: "Apa impian terbesar kalian berdua?", options: ["Keliling dunia", "Menikah & bahagia selamanya", "Punya rumah impian", "Sukses bersama"], ans: 1}
-                ];
-
-                if (State.quizIndex < quizQuestions.length) {
-                    const curr = quizQuestions[State.quizIndex];
-                    let optionsHtml = '';
-                    curr.options.forEach((opt, idx) => {
-                        optionsHtml += `<button onclick="answerQuiz(${idx}, ${curr.ans})" class="w-full text-left p-3.5 rounded-2xl glass-panel hover:bg-rose-500/20 border border-rose-500/20 font-medium text-sm transition flex items-center justify-between"><span>${opt}</span><i class="fa-solid fa-chevron-right text-xs text-rose-400"></i></button>`;
-                    });
-                    activeHtml = `
-                        <div class="space-y-4 my-auto">
-                            <div class="flex justify-between items-center text-xs text-rose-300 font-bold px-1">
-                                <span>Pertanyaan ${State.quizIndex + 1} dari ${quizQuestions.length}</span>
-                                <button onclick="switchTab('menu')" class="text-rose-400 hover:text-white"><i class="fa-solid fa-xmark mr-1"></i>Keluar</button>
-                            </div>
-                            <div class="glass-card p-6 rounded-3xl border border-rose-500/30 shadow-xl">
-                                <h3 class="font-serif font-bold text-lg text-white mb-4">${curr.q}</h3>
-                                <div class="space-y-2.5">${optionsHtml}</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    activeHtml = `
-                        <div class="text-center space-y-5 my-auto">
-                            <div class="w-20 h-20 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-4xl pulse-slow">
-                                <i class="fa-solid fa-award"></i>
-                            </div>
-                            <h3 class="font-serif font-bold text-2xl text-white">Kuis Selesai! 🎉</h3>
-                            <p class="text-sm text-rose-200">Kecocokan kamu dan ${State.partnerName} luar biasa! Skor kuis kamu: <span class="text-rose-400 font-bold">${State.quizScore * 25}%</span></p>
-                            <button onclick="resetQuiz()" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-2xl shadow-lg">Mainkan Lagi</button>
-                            <button onclick="switchTab('menu')" class="w-full py-3 glass-panel text-rose-300 font-bold rounded-2xl">Kembali ke Menu</button>
-                        </div>
-                    `;
-                }
-            } else if (State.activeTab === 'charades') {
-                activeHtml = `
-                    <div class="space-y-4 my-auto">
-                        <div class="flex justify-between items-center px-1">
-                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-comments text-pink-400 mr-2"></i> Love Charades</h3>
-                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
-                        </div>
-                        <div class="glass-card p-6 rounded-3xl space-y-4 border border-rose-500/30 text-center shadow-xl">
-                            <p class="text-xs text-rose-200/80">Kirimkan petunjuk atau tebak kata romantis untuk <span class="text-rose-300 font-bold">${State.partnerName}</span>!</p>
-                            <div class="bg-black/40 p-4 rounded-2xl border border-rose-500/20">
-                                <p class="text-[10px] text-rose-400 uppercase font-bold mb-1">Kata Rahasia Saat Ini:</p>
-                                <p class="text-2xl font-black text-white tracking-widest">${State.charadesWord}</p>
-                            </div>
-                            <div class="space-y-3">
-                                <input type="text" id="inputClue" placeholder="Tulis petunjuk romantis..." class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-rose-500">
-                                <button onclick="sendCharadesClue()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-xl text-xs shadow-md">Kirim Petunjuk ke Pasangan</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (State.activeTab === 'daily') {
-                let missionsHtml = '';
-                State.dailyMissions.forEach(m => {
-                    missionsHtml += `
-                        <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between">
-                            <div class="pr-3">
-                                <h4 class="font-bold text-sm text-white mb-1 flex items-center"><i class="fa-solid fa-heart text-rose-500 text-xs mr-2"></i>${m.title}</h4>
-                                <p class="text-[11px] text-rose-200/70">${m.desc}</p>
-                            </div>
-                            <button onclick="completeMission(${m.id})" class="px-4 py-2 rounded-xl text-xs font-bold transition ${m.completed ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white hover:bg-rose-600 shadow-md'}">
-                                ${m.completed ? 'Selesai ❤️' : 'Selesaikan'}
-                            </button>
-                        </div>
-                    `;
-                });
-                activeHtml = `
-                    <div class="space-y-4 my-auto">
-                        <div class="flex justify-between items-center px-1">
-                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-calendar-check text-purple-400 mr-2"></i> Misi Cinta Harian</h3>
-                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
-                        </div>
-                        <div class="space-y-3">${missionsHtml}</div>
-                    </div>
-                `;
-            } else if (State.activeTab === 'vault') {
-                let vaultHtml = '';
-                State.vaultMessages.forEach(v => {
-                    vaultHtml += `
-                        <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 space-y-1">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-rose-300">${v.sender}</span>
-                                <span class="text-[10px] text-rose-300/50">${v.time}</span>
-                            </div>
-                            <p class="text-xs text-white/90 font-medium">${v.text}</p>
-                        </div>
-                    `;
-                });
-                activeHtml = `
-                    <div class="space-y-4 my-auto">
-                        <div class="flex justify-between items-center px-1">
-                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-vault text-amber-400 mr-2"></i> Love Vault</h3>
-                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
-                        </div>
-                        <div class="space-y-3 max-h-60 overflow-y-auto pr-1">${vaultHtml}</div>
-                        <div class="glass-card p-4 rounded-2xl border border-rose-500/30 space-y-2 shadow-xl">
-                            <input type="text" id="vaultInputMsg" placeholder="Tulis pesan rahasia untuk pasangan..." class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
-                            <button onclick="addVaultMessage()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 text-white font-bold rounded-xl text-xs shadow-md">Simpan di Love Vault</button>
-                        </div>
-                    </div>
-                `;
-            } else if (State.activeTab === 'certificate') {
-                activeHtml = `
-                    <div class="space-y-4 my-auto text-center">
-                        <div class="flex justify-between items-center px-1">
-                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-certificate text-amber-400 mr-2"></i> Sertifikat Cinta</h3>
-                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
-                        </div>
-                        <div class="glass-card p-6 rounded-3xl border-2 border-amber-500/40 space-y-4 relative overflow-hidden bg-gradient-to-b from-[#25101b] to-[#12050c] shadow-2xl">
-                            <div class="absolute top-2 right-2 text-amber-400/20 text-6xl"><i class="fa-solid fa-crown"></i></div>
-                            <p class="text-[10px] uppercase tracking-widest text-amber-300 font-bold">Sertifikat Resmi Hubungan Sejoli</p>
-                            <h2 class="font-serif font-bold text-2xl text-white">Sertifikat Cinta Abadi</h2>
-                            <p class="text-xs text-rose-200/80 leading-relaxed">Sertifikat ini diberikan dengan penuh cinta dan kesungguhan kepada pasangan terkasih:</p>
-                            <div class="py-2 border-y border-rose-500/30 my-2">
-                                <p class="font-serif font-bold text-lg text-rose-300">Nadilla & Muhammad Dede Imran</p>
-                            </div>
-                            <p class="text-[11px] text-rose-200/70">Telah teruji kesetiaan, kebersamaan, dan keromantisannya dalam Our Love Odyssey dengan skor kecocokan <span class="text-amber-400 font-bold">99.9%</span>.</p>
-                            <div class="pt-2 flex justify-around text-[10px] text-rose-300 font-semibold">
-                                <div>Sesi: Berdua Aktif</div>
-                                <div>Status: Sah & Sejati ❤️</div>
-                            </div>
-                        </div>
-                        <button onclick="showModal('Berhasil Di-screenshot!', 'Screenshot layar ini atau kirimkan ke pacar tercinta sebagai kenangan indah!', 'fa-solid fa-camera')" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-2xl shadow-lg text-sm">Simpan / Download Sertifikat</button>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = activeHtml;
-        }
-
-        function switchTab(tab) {
-            State.activeTab = tab;
-            playSound('click');
-            renderScreen();
-        }
-
-        function answerQuiz(selectedIdx, correctIdx) {
-            if (selectedIdx === correctIdx) {
-                State.quizScore++;
-                playSound('success');
-                showModal('Hebat! 🎉', 'Jawaban kamu benar! Ikatan kalian semakin kuat.', 'fa-solid fa-heart');
-            } else {
-                playSound('click');
-                showModal('Hampir Tepat! 💕', 'Tidak apa-apa sayang, yang penting kalian saling mengerti.', 'fa-solid fa-face-smile');
-            }
-            State.quizIndex++;
-            renderScreen();
-        }
-
-        function resetQuiz() {
-            State.quizIndex = 0;
-            State.quizScore = 0;
-            renderScreen();
-        }
-
-        function sendCharadesClue() {
-            const clue = document.getElementById('inputClue').value.trim();
-            if(!clue) return;
-            playSound('success');
-            showModal('Petunjuk Terkirim! 💌', `Petunjuk berhasil dikirim ke ${State.partnerName}: "${clue}"`, 'fa-solid fa-paper-plane');
-            document.getElementById('inputClue').value = '';
-        }
-
-        function completeMission(id) {
-            const m = State.dailyMissions.find(x => x.id === id);
-            if(m) {
-                m.completed = true;
-                State.score = Math.min(100, State.score + 5);
-                playSound('success');
-                showModal('Misi Selesai! ✨', `Hebat! Tantangan "${m.title}" telah diselesaikan. Skor cinta bertambah!`, 'fa-solid fa-star');
-                renderScreen();
-            }
-        }
-
-        function addVaultMessage() {
-            const msg = document.getElementById('vaultInputMsg').value.trim();
-            if(!msg) return;
-            State.vaultMessages.unshift({
-                sender: State.playerName,
-                text: msg,
-                time: 'Baru saja'
-            });
-            localStorage.setItem('love_vault', JSON.stringify(State.vaultMessages));
-            document.getElementById('vaultInputMsg').value = '';
-            playSound('success');
-            renderScreen();
-        }
-
-        // Initial Render
-        renderScreen();
     </script>
 </body>
 </html>
