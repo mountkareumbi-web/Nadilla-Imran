@@ -3,360 +3,933 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Mario Multi-Device Console</title>
-    <!-- Include PeerJS & QRCode Library -->
+    <title>Super Mario Bros - Web Remote Multiplayer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PeerJS Client -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-        body { background-color: #0d1117; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&family=Inter:wght@400;600;800&display=swap');
         
-        /* MENU SELECTION */
-        #menu-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #161b22; padding: 30px; border-radius: 20px; border: 3px solid #f1c40f; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 90%; max-width: 450px; text-align: center; }
-        #menu-screen h1 { color: #f1c40f; font-size: 28px; margin-bottom: 5px; text-shadow: 2px 2px #c0392b; }
-        #menu-screen h2 { color: #e74c3c; font-size: 14px; margin-bottom: 25px; letter-spacing: 2px; }
-        .btn-mode { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; color: white; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
-        .btn-mode:active { transform: scale(0.98); }
-        .btn-display { background: linear-gradient(135deg, #2980b9, #3498db); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); }
-        .btn-p1 { background: linear-gradient(135deg, #c0392b, #e74c3c); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
-        .btn-p2 { background: linear-gradient(135deg, #27ae60, #2ecc71); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); }
-        .btn-mode:disabled { background: #555 !important; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
 
-        /* LAPTOP DISPLAY */
-        #display-screen { display: none; flex-direction: column; align-items: center; width: 100vw; height: 100vh; background: #5c94fc; position: relative; }
-        #canvas-container { position: relative; margin-top: 10px; border: 4px solid #000; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        canvas { background: #5c94fc; display: block; }
-        #qr-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #qr-box { background: white; padding: 20px; border-radius: 15px; display: flex; gap: 20px; text-align: center; color: #333; }
-        .qr-card { display: flex; flex-direction: column; align-items: center; }
-        
-        /* HP CONTROLLER */
-        #controller-screen { display: none; width: 100vw; height: 100vh; background: #222; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 40px; }
-        .dpad { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 5px; }
-        .dbtn { background: #444; border: 2px solid #666; border-radius: 10px; color: white; font-size: 20px; display: flex; justify-content: center; align-items: center; touch-action: manipulation; }
-        .dbtn:active { background: #888; }
-        .dbtn-up { grid-column: 2; grid-row: 1; }
-        .dbtn-left { grid-column: 1; grid-row: 2; }
-        .dbtn-right { grid-column: 3; grid-row: 2; }
-        .dbtn-down { grid-column: 2; grid-row: 3; }
+        .font-arcade {
+            font-family: 'Press Start 2P', cursive;
+        }
 
-        .action-buttons { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 5px; }
-        .abtn { border-radius: 50%; color: white; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.3); touch-action: manipulation; }
-        .abtn:active { filter: brightness(1.5); }
-        .abtn-triangle { grid-column: 2; grid-row: 1; background: #2ecc71; }
-        .abtn-square { grid-column: 1; grid-row: 2; background: #f1c40f; }
-        .abtn-circle { grid-column: 3; grid-row: 2; background: #e74c3c; }
-        .abtn-cross { grid-column: 2; grid-row: 3; background: #3498db; }
+        .font-game {
+            font-family: 'Fredoka One', cursive;
+        }
 
-        #status-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
+        /* Custom Game Button Styles */
+        .btn-arcade {
+            box-shadow: 0 6px 0 #000;
+            transition: all 0.1s ease;
+        }
+        .btn-arcade:active {
+            box-shadow: 0 1px 0 #000;
+            transform: translateY(5px);
+        }
+
+        /* Gamepad D-Pad Custom Styling */
+        .dpad-btn {
+            background: linear-gradient(135deg, #374151, #1f2937);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.4);
+        }
+        .dpad-btn:active, .dpad-btn.active {
+            background: #111827;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.8);
+            transform: scale(0.95);
+        }
+
+        /* Action Buttons Styling */
+        .action-btn {
+            box-shadow: inset 0 3px 6px rgba(255,255,255,0.4), 0 6px 10px rgba(0,0,0,0.5);
+            transition: transform 0.05s ease, background-color 0.1s;
+        }
+        .action-btn:active, .action-btn.active {
+            box-shadow: inset 0 6px 12px rgba(0,0,0,0.6);
+            transform: scale(0.90) translateY(3px);
+        }
+
+        /* Canvas Fitting */
+        #gameCanvas {
+            image-rendering: pixelated;
+            background: #6b8cff;
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-900 text-white min-h-screen overflow-hidden flex flex-col items-center justify-center">
 
-    <!-- MENU SCREEN -->
-    <div id="menu-screen">
-        <h1>SUPER MARIO</h1>
-        <h2>MULTI-DEVICE CONSOLE</h2>
-        <p style="font-size: 12px; margin-bottom: 15px; color: #aaa;">Pilih mode perangkat ini:</p>
-        <button class="btn-mode btn-display" onclick="startDisplay()">
-            <span>💻 Display (Laptop / TV)</span>
-        </button>
-        <button id="btn-p1" class="btn-mode btn-p1" onclick="startController(1)">
-            <span>📱 Stick Player 1 (Mario)</span> <small id="status-p1">Ready</small>
-        </button>
-        <button id="btn-p2" class="btn-mode btn-p2" onclick="startController(2)">
-            <span>📱 Stick Player 2 (Luigi)</span> <small id="status-p2">Ready</small>
-        </button>
-    </div>
+    <!-- APP CONTAINER -->
+    <div id="app" class="w-full h-screen flex flex-col">
 
-    <!-- LAPTOP DISPLAY SCREEN -->
-    <div id="display-screen">
-        <div id="qr-modal">
-            <h2 style="margin-bottom: 15px; color: #f1c40f;">SCAN QR CODE DENGAN HP</h2>
-            <div id="qr-box">
-                <div class="qr-card">
-                    <div id="qrcode-p1"></div>
-                    <b style="color: #e74c3c; margin-top: 5px;">Player 1 (Mario)</b>
-                    <span id="p1-state">Menunggu HP 1...</span>
+        <!-- 1. LANDING PAGE / ROLE SELECTION -->
+        <div id="view-landing" class="flex-1 flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-600 via-indigo-900 to-black text-center relative overflow-hidden">
+            <!-- Retro Cloud Animations -->
+            <div class="absolute top-10 left-10 text-white/20 text-6xl"><i class="fa-solid fa-cloud"></i></div>
+            <div class="absolute top-20 right-20 text-white/20 text-8xl"><i class="fa-solid fa-cloud"></i></div>
+            
+            <div class="z-10 max-w-lg w-full bg-gray-800/80 backdrop-blur-md p-6 sm:p-8 rounded-2xl border-4 border-yellow-400 shadow-2xl">
+                <h1 class="font-arcade text-2xl sm:text-3xl text-yellow-400 mb-2 leading-tight tracking-wider">SUPER MARIO</h1>
+                <p class="font-game text-red-500 text-xl mb-6 tracking-wide drop-shadow-md">REMOTE MULTIPLAYER WEB</p>
+
+                <!-- Room ID Input / Display -->
+                <div class="mb-6 bg-gray-900/80 p-4 rounded-xl border border-gray-700">
+                    <label class="block text-xs text-gray-400 font-arcade mb-2">KODE ROOM GAME</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="roomCodeInput" class="w-full text-center font-arcade text-lg bg-gray-800 border-2 border-yellow-500 text-yellow-300 py-2 rounded-lg focus:outline-none uppercase" placeholder="MARIO1" value="MARIO1">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Gunakan Kode Room yang sama di HP & Laptop</p>
                 </div>
-                <div class="qr-card">
-                    <div id="qrcode-p2"></div>
-                    <b style="color: #2ecc71; margin-top: 5px;">Player 2 (Luigi)</b>
-                    <span id="p2-state">Menunggu HP 2...</span>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Display Button -->
+                    <button onclick="selectRole('display')" class="btn-arcade bg-red-600 hover:bg-red-500 border-2 border-black p-4 rounded-xl flex flex-col items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-desktop text-3xl text-white group-hover:scale-110 transition-transform"></i>
+                        <span class="font-arcade text-xs text-white">DISPLAY (LAPTOP)</span>
+                    </button>
+
+                    <!-- Controller Button -->
+                    <button onclick="selectRole('controller')" class="btn-arcade bg-green-600 hover:bg-green-500 border-2 border-black p-4 rounded-xl flex flex-col items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-gamepad text-3xl text-white group-hover:scale-110 transition-transform"></i>
+                        <span class="font-arcade text-xs text-white">STICK GAMEPAD (HP)</span>
+                    </button>
                 </div>
             </div>
-            <p style="margin-top: 15px; font-size: 14px; color: #ccc;">Atau buka URL ini di HP dan masukkan ID Room.</p>
-            <button onclick="closeQRModal()" style="margin-top: 15px; padding: 10px 20px; border-radius: 8px; border: none; background: #f1c40f; font-weight: bold; cursor: pointer;">Mulai Game Tanpa Tunggu</button>
         </div>
-        <div id="canvas-container">
-            <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+        <!-- 2. CONTROLLER SLOT SELECTION (HP) -->
+        <div id="view-slot-select" class="hidden flex-1 flex flex-col items-center justify-center p-4 bg-gray-900 text-center">
+            <div class="max-w-md w-full bg-gray-800 p-6 rounded-2xl border-2 border-indigo-500 shadow-2xl">
+                <h2 class="font-arcade text-lg text-yellow-400 mb-2">PILIH PLAYER STICK</h2>
+                <p class="text-gray-400 text-xs mb-6">Room: <span id="displayRoomCode" class="text-yellow-300 font-arcade">---</span></p>
+
+                <div class="space-y-4">
+                    <!-- Player 1 Slot -->
+                    <button id="btnSlotP1" onclick="claimSlot(1)" class="w-full btn-arcade bg-red-600 hover:bg-red-500 p-4 rounded-xl flex items-center justify-between border-2 border-black">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white text-red-600 rounded-full flex items-center justify-center font-arcade font-bold">P1</div>
+                            <div class="text-left">
+                                <div class="font-arcade text-xs text-white">PLAYER 1 (MARIO)</div>
+                                <div id="statusP1" class="text-[10px] text-green-300 font-bold">TERSEDIA</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                    <!-- Player 2 Slot -->
+                    <button id="btnSlotP2" onclick="claimSlot(2)" class="w-full btn-arcade bg-green-600 hover:bg-green-500 p-4 rounded-xl flex items-center justify-between border-2 border-black">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white text-green-600 rounded-full flex items-center justify-center font-arcade font-bold">P2</div>
+                            <div class="text-left">
+                                <div class="font-arcade text-xs text-white">PLAYER 2 (LUIGI)</div>
+                                <div id="statusP2" class="text-[10px] text-green-300 font-bold">TERSEDIA</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <button onclick="backToLanding()" class="mt-6 text-xs text-gray-400 hover:text-white underline">Kembali ke Beranda</button>
+            </div>
         </div>
+
+        <!-- 3. GAME DISPLAY VIEW (LAPTOP) -->
+        <div id="view-display" class="hidden flex-1 flex flex-col bg-black relative">
+            <!-- Top Status Bar -->
+            <div class="h-14 bg-gray-900 border-b border-gray-800 px-4 flex items-center justify-between font-arcade text-xs">
+                <div class="flex items-center gap-4">
+                    <span class="text-yellow-400">ROOM: <span id="gameRoomDisplay" class="text-white">---</span></span>
+                    <button onclick="copyRoomLink()" class="bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-[10px] text-gray-300">
+                        <i class="fa-solid fa-copy"></i> Salin Code
+                    </button>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div id="badgeP1" class="px-2 py-1 bg-red-900/50 border border-red-500 rounded text-red-400 text-[10px]">P1: Keyboard / Menunggu Controller</div>
+                    <div id="badgeP2" class="px-2 py-1 bg-green-900/50 border border-green-500 rounded text-green-400 text-[10px]">P2: Keyboard / Menunggu Controller</div>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="flex-1 flex items-center justify-center relative overflow-hidden bg-sky-400">
+                <canvas id="gameCanvas" class="w-full h-full object-contain"></canvas>
+            </div>
+        </div>
+
+        <!-- 4. CONTROLLER GAMEPAD VIEW (HP - LANDSCAPE OPTIMIZED) -->
+        <div id="view-controller" class="hidden flex-1 bg-gray-950 flex flex-col justify-between p-3 select-none relative overflow-hidden">
+            <!-- Header status controller -->
+            <div class="flex justify-between items-center bg-gray-900/80 px-4 py-2 rounded-lg border border-gray-800 text-xs font-arcade">
+                <div class="flex items-center gap-2">
+                    <div id="playerIndicator" class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span id="playerTitle" class="text-yellow-400">PLAYER 1</span>
+                </div>
+                <div id="connStatus" class="text-green-400 text-[10px]"><i class="fa-solid fa-wifi"></i> TERHUBUNG</div>
+                <button onclick="location.reload()" class="text-gray-400 text-[10px]"><i class="fa-solid fa-power-off"></i> Keluar</button>
+            </div>
+
+            <!-- Gamepad Control Area -->
+            <div class="flex-1 grid grid-cols-2 gap-4 items-center px-2 py-1">
+                
+                <!-- D-PAD (Kiri, Kanan, Atas, Bawah) -->
+                <div class="flex justify-center items-center">
+                    <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900 rounded-full p-2 border-4 border-gray-800 shadow-inner flex items-center justify-center">
+                        <!-- Up -->
+                        <button id="btn-up" class="dpad-btn absolute top-2 w-12 h-14 rounded-t-xl flex items-center justify-center text-gray-300 text-xl"
+                                title="Atas"><i class="fa-solid fa-caret-up"></i></button>
+                        <!-- Left -->
+                        <button id="btn-left" class="dpad-btn absolute left-2 w-14 h-12 rounded-l-xl flex items-center justify-center text-gray-300 text-xl"
+                                title="Kiri"><i class="fa-solid fa-caret-left"></i></button>
+                        <!-- Center decorative -->
+                        <div class="w-10 h-10 bg-gray-950 rounded-full z-10 border border-gray-800 flex items-center justify-center text-[8px] text-gray-600 font-arcade">PAD</div>
+                        <!-- Right -->
+                        <button id="btn-right" class="dpad-btn absolute right-2 w-14 h-12 rounded-r-xl flex items-center justify-center text-gray-300 text-xl"
+                                title="Kanan"><i class="fa-solid fa-caret-right"></i></button>
+                        <!-- Down -->
+                        <button id="btn-down" class="dpad-btn absolute bottom-2 w-12 h-14 rounded-b-xl flex items-center justify-center text-gray-300 text-xl"
+                                title="Bawah"><i class="fa-solid fa-caret-down"></i></button>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS (Segitiga, Kotak, X/Kali, Bundar) -->
+                <div class="flex justify-center items-center">
+                    <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900/50 rounded-full p-2 flex items-center justify-center">
+                        
+                        <!-- Segitiga (Top / Jump) -->
+                        <button id="btn-triangle" class="action-btn absolute top-2 w-13 h-13 sm:w-14 sm:h-14 bg-emerald-600 text-white rounded-full flex flex-col items-center justify-center text-lg font-bold border-2 border-emerald-400"
+                                title="Lompat">
+                            <i class="fa-solid fa-play -rotate-90 text-sm"></i>
+                            <span class="text-[8px] font-arcade">JUMP</span>
+                        </button>
+                        
+                        <!-- Kotak (Left / Run) -->
+                        <button id="btn-square" class="action-btn absolute left-2 w-13 h-13 sm:w-14 sm:h-14 bg-pink-600 text-white rounded-full flex flex-col items-center justify-center text-lg font-bold border-2 border-pink-400"
+                                title="Lari / Sprint">
+                            <i class="fa-regular fa-square text-sm"></i>
+                            <span class="text-[8px] font-arcade">RUN</span>
+                        </button>
+
+                        <!-- Bundar (Right / Special) -->
+                        <button id="btn-circle" class="action-btn absolute right-2 w-13 h-13 sm:w-14 sm:h-14 bg-red-600 text-white rounded-full flex flex-col items-center justify-center text-lg font-bold border-2 border-red-400"
+                                title="Aksi / Tembak">
+                            <i class="fa-regular fa-circle text-sm"></i>
+                            <span class="text-[8px] font-arcade">FIRE</span>
+                        </button>
+
+                        <!-- X / Kali (Bottom / Action-Jump) -->
+                        <button id="btn-cross" class="action-btn absolute bottom-2 w-13 h-13 sm:w-14 sm:h-14 bg-blue-600 text-white rounded-full flex flex-col items-center justify-center text-lg font-bold border-2 border-blue-400"
+                                title="Aksi Utama">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                            <span class="text-[8px] font-arcade">ACTION</span>
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Custom Notification Modal -->
+        <div id="modalAlert" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-800 border-2 border-red-500 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i>
+                <h3 id="modalTitle" class="font-arcade text-sm text-yellow-400 mb-2">PERHATIAN</h3>
+                <p id="modalMsg" class="text-xs text-gray-300 mb-4">Slot controller sudah terisi oleh pemain lain!</p>
+                <button onclick="closeModal()" class="w-full bg-red-600 hover:bg-red-500 font-arcade text-xs py-2 rounded-lg text-white">OK</button>
+            </div>
+        </div>
+
     </div>
 
-    <!-- HP CONTROLLER SCREEN -->
-    <div id="controller-screen">
-        <div id="status-bar">Terhubung sebagai: <b id="player-tag">-</b></div>
-        
-        <!-- DPAD (KIRI) -->
-        <div class="dpad">
-            <div class="dbtn dbtn-up" data-key="up">▲</div>
-            <div class="dbtn dbtn-left" data-key="left">◀</div>
-            <div class="dbtn dbtn-right" data-key="right">▶</div>
-            <div class="dbtn dbtn-down" data-key="down">▼</div>
-        </div>
-
-        <!-- ACTION BUTTONS (KANAN) -->
-        <div class="action-buttons">
-            <div class="abtn abtn-triangle" data-key="triangle">▲</div>
-            <div class="abtn abtn-square" data-key="square">■</div>
-            <div class="abtn abtn-circle" data-key="circle">●</div>
-            <div class="abtn abtn-cross" data-key="cross">✖</div>
-        </div>
-    </div>
-
+    <!-- MAIN APP JAVASCRIPT LOGIC -->
     <script>
-        // PEERJS SETUP & GLOBAL VARIABLES
+        // --- GLOBAL STATE & PEERJS REALTIME LOGIC ---
+        let roomCode = "MARIO1";
+        let userRole = null; // 'display' or 'controller'
+        let selectedPlayer = null; // 1 or 2
         let peer = null;
-        let connections = { p1: null, p2: null };
-        let roomID = Math.random().toString(36).substring(2, 8).toUpperCase();
-        let currentMode = '';
+        let peerConnections = { 1: null, 2: null }; // For Display Host
+        let controllerConn = null; // For Controller Client
 
-        // Web Audio Synthesizer (Retro Sound Effects)
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            if (type === 'jump') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
-            } else if (type === 'coin') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        // Input state for players (P1 & P2)
+        const inputs = {
+            1: { left: false, right: false, up: false, down: false, run: false, action: false },
+            2: { left: false, right: false, up: false, down: false, run: false, action: false }
+        };
+
+        // --- NAVIGATION & ROLE SELECTION ---
+        function selectRole(role) {
+            const inputVal = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if(!inputVal) {
+                showAlert("Kode Room Kosong", "Silahkan masukkan kode room terlebih dahulu!");
+                return;
+            }
+            roomCode = inputVal;
+            userRole = role;
+
+            document.getElementById('view-landing').classList.add('hidden');
+
+            if(role === 'display') {
+                document.getElementById('view-display').classList.remove('hidden');
+                document.getElementById('gameRoomDisplay').innerText = roomCode;
+                initDisplayHost();
+            } else {
+                document.getElementById('view-slot-select').classList.remove('hidden');
+                document.getElementById('displayRoomCode').innerText = roomCode;
+                checkSlotAvailability();
             }
         }
 
-        // --- 1. DISPLAY (LAPTOP ENGINE) ---
-        function startDisplay() {
-            currentMode = 'display';
-            document.getElementById('menu-screen').style.display = 'none';
-            document.getElementById('display-screen').style.display = 'flex';
+        function backToLanding() {
+            document.getElementById('view-slot-select').classList.add('hidden');
+            document.getElementById('view-landing').classList.remove('hidden');
+        }
 
-            const displayPeerId = 'MARIO-ROOM-' + roomID;
-            peer = new Peer(displayPeerId);
+        function showAlert(title, msg) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('modalAlert').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modalAlert').classList.add('hidden');
+        }
+
+        function copyRoomLink() {
+            const text = roomCode;
+            navigator.clipboard ? navigator.clipboard.writeText(text) : document.execCommand('copy');
+            alert("Kode Room disalin: " + text);
+        }
+
+        // --- PEERJS REAL-TIME COMMUNICATIONS ---
+
+        // 1. Host (Display Laptop) Setup
+        function initDisplayHost() {
+            const hostPeerId = "mario-host-" + roomCode;
+            peer = new Peer(hostPeerId);
 
             peer.on('open', (id) => {
-                const currentURL = window.location.href.split('?')[0];
-                const urlP1 = `${currentURL}?room=${displayPeerId}&player=1`;
-                const urlP2 = `${currentURL}?room=${displayPeerId}&player=2`;
-
-                new QRCode(document.getElementById("qrcode-p1"), { text: urlP1, width: 128, height: 128 });
-                new QRCode(document.getElementById("qrcode-p2"), { text: urlP2, width: 128, height: 128 });
+                console.log("Display Host Peer ID: ", id);
             });
 
             peer.on('connection', (conn) => {
                 conn.on('data', (data) => {
-                    if (data.type === 'REGISTER') {
-                        if (data.player === 1 && !connections.p1) {
-                            connections.p1 = conn;
-                            document.getElementById('p1-state').innerText = "✅ TERHUBUNG";
-                            document.getElementById('p1-state').style.color = "green";
-                            conn.send({ type: 'REGISTER_SUCCESS', player: 1 });
-                        } else if (data.player === 2 && !connections.p2) {
-                            connections.p2 = conn;
-                            document.getElementById('p2-state').innerText = "✅ TERHUBUNG";
-                            document.getElementById('p2-state').style.color = "green";
-                            conn.send({ type: 'REGISTER_SUCCESS', player: 2 });
+                    // Handle Handshake & Slot Claim Request
+                    if (data.type === 'CLAIM_SLOT') {
+                        const requestedPlayer = data.player;
+                        if (peerConnections[requestedPlayer] && peerConnections[requestedPlayer].open) {
+                            // Slot already taken! Reject!
+                            conn.send({ type: 'SLOT_REJECTED', reason: `Slot Player ${requestedPlayer} telah terisi!` });
                         } else {
-                            conn.send({ type: 'SLOT_FULL' });
+                            // Accept Slot!
+                            peerConnections[requestedPlayer] = conn;
+                            conn.send({ type: 'SLOT_ACCEPTED', player: requestedPlayer });
+                            updateDisplayBadges();
+
+                            // Listen for controller inputs from this connection
+                            conn.on('data', (msg) => {
+                                if (msg.type === 'INPUT_STATE') {
+                                    inputs[requestedPlayer] = msg.state;
+                                }
+                            });
+
+                            conn.on('close', () => {
+                                peerConnections[requestedPlayer] = null;
+                                updateDisplayBadges();
+                            });
                         }
                     }
-
-                    if (data.type === 'INPUT') {
-                        handleInput(data.player, data.key, data.state);
-                    }
-                });
-
-                conn.on('close', () => {
-                    if (connections.p1 === conn) { connections.p1 = null; document.getElementById('p1-state').innerText = "Terputus"; }
-                    if (connections.p2 === conn) { connections.p2 = null; document.getElementById('p2-state').innerText = "Terputus"; }
                 });
             });
 
+            peer.on('error', (err) => {
+                console.error("PeerJS Host Error:", err);
+            });
+
+            // Start Canvas Game Engine on Laptop Display
             initGameEngine();
         }
 
-        function closeQRModal() {
-            document.getElementById('qr-modal').style.display = 'none';
-        }
+        function updateDisplayBadges() {
+            const badgeP1 = document.getElementById('badgeP1');
+            const badgeP2 = document.getElementById('badgeP2');
 
-        // --- 2. CONTROLLER (HP) ---
-        function startController(playerNum) {
-            const urlParams = new URLSearchParams(window.location.search);
-            let targetRoom = urlParams.get('room');
-
-            if (!targetRoom) {
-                targetRoom = prompt("Masukkan Kode Room dari Laptop (misal: MARIO-ROOM-XXXXXX):");
-                if (!targetRoom) return;
+            if (peerConnections[1] && peerConnections[1].open) {
+                badgeP1.className = "px-2 py-1 bg-red-600 text-white font-bold rounded text-[10px]";
+                badgeP1.innerText = "P1: REMOTELY CONNECTED (HP)";
+            } else {
+                badgeP1.className = "px-2 py-1 bg-red-900/50 border border-red-500 rounded text-red-400 text-[10px]";
+                badgeP1.innerText = "P1: KEYBOARD (A/D/W) / WAITING HP";
             }
 
-            document.getElementById('menu-screen').style.display = 'none';
-            document.getElementById('controller-screen').style.display = 'flex';
-            document.getElementById('player-tag').innerText = `Player ${playerNum} (${playerNum === 1 ? 'Mario' : 'Luigi'})`;
-            document.getElementById('player-tag').style.color = playerNum === 1 ? '#e74c3c' : '#2ecc71';
+            if (peerConnections[2] && peerConnections[2].open) {
+                badgeP2.className = "px-2 py-1 bg-green-600 text-white font-bold rounded text-[10px]";
+                badgeP2.innerText = "P2: REMOTELY CONNECTED (HP)";
+            } else {
+                badgeP2.className = "px-2 py-1 bg-green-900/50 border border-green-500 rounded text-green-400 text-[10px]";
+                badgeP2.innerText = "P2: KEYBOARD (ARROWS) / WAITING HP";
+            }
+        }
 
-            peer = new Peer();
+        // 2. Client Controller (HP) Slot Check & Claim
+        function checkSlotAvailability() {
+            // Optional visual status updates
+        }
 
-            peer.on('open', () => {
-                const conn = peer.connect(targetRoom);
-                
-                conn.on('open', () => {
-                    conn.send({ type: 'REGISTER', player: playerNum });
+        function claimSlot(playerNum) {
+            const clientPeer = new Peer();
+            const hostPeerId = "mario-host-" + roomCode;
+
+            clientPeer.on('open', (id) => {
+                controllerConn = clientPeer.connect(hostPeerId);
+
+                controllerConn.on('open', () => {
+                    // Request to claim requested slot
+                    controllerConn.send({ type: 'CLAIM_SLOT', player: playerNum });
                 });
 
-                conn.on('data', (data) => {
-                    if (data.type === 'SLOT_FULL') {
-                        alert("Slot player ini sudah terisi oleh HP lain!");
-                        window.location.href = window.location.pathname;
+                controllerConn.on('data', (data) => {
+                    if (data.type === 'SLOT_ACCEPTED') {
+                        selectedPlayer = data.player;
+                        launchControllerUI();
+                    } else if (data.type === 'SLOT_REJECTED') {
+                        showAlert("Tolak Akses Slot", data.reason);
+                        clientPeer.destroy();
                     }
                 });
 
-                setupTouchControls(conn, playerNum);
+                controllerConn.on('close', () => {
+                    showAlert("Koneksi Terputus", "Koneksi ke Layar Utama terputus.");
+                });
+
+                controllerConn.on('error', (err) => {
+                    showAlert("Koneksi Gagal", "Gagal menghubungkan ke Display Laptop. Pastikan Kode Room sama.");
+                });
+            });
+
+            clientPeer.on('error', (err) => {
+                showAlert("Koneksi Gagal", "Tidak dapat membuat sesi koneksi. Coba lagi.");
             });
         }
 
-        function setupTouchControls(conn, playerNum) {
-            const buttons = document.querySelectorAll('.dbtn, .abtn');
-            buttons.forEach(btn => {
-                const key = btn.getAttribute('data-key');
+        // Launch Controller Interface for HP
+        function launchControllerUI() {
+            document.getElementById('view-slot-select').classList.add('hidden');
+            document.getElementById('view-controller').classList.remove('hidden');
 
-                const sendAction = (state) => {
-                    if (conn && conn.open) {
-                        conn.send({ type: 'INPUT', player: playerNum, key: key, state: state });
+            const pTitle = document.getElementById('playerTitle');
+            const pIndicator = document.getElementById('playerIndicator');
+
+            if (selectedPlayer === 1) {
+                pTitle.innerText = "PLAYER 1 (MARIO)";
+                pTitle.className = "text-red-400 font-arcade";
+                pIndicator.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
+            } else {
+                pTitle.innerText = "PLAYER 2 (LUIGI)";
+                pTitle.className = "text-green-400 font-arcade";
+                pIndicator.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
+            }
+
+            // Bind Touch Events on HP Buttons
+            bindGamepadTouchEvents();
+        }
+
+        // Map Controller Buttons to Input State and Transmit to Display Host
+        function bindGamepadTouchEvents() {
+            const myInputs = { left: false, right: false, up: false, down: false, run: false, action: false };
+
+            const sendState = () => {
+                if (controllerConn && controllerConn.open) {
+                    controllerConn.send({ type: 'INPUT_STATE', state: myInputs });
+                }
+            };
+
+            const bindBtn = (btnId, keyName) => {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+
+                const press = (e) => {
+                    e.preventDefault();
+                    if (!myInputs[keyName]) {
+                        myInputs[keyName] = true;
+                        btn.classList.add('active');
+                        if(navigator.vibrate) navigator.vibrate(20); // Haptic feedback
+                        sendState();
                     }
                 };
 
-                btn.addEventListener('touchstart', (e) => { e.preventDefault(); sendAction(true); });
-                btn.addEventListener('touchend', (e) => { e.preventDefault(); sendAction(false); });
-                btn.addEventListener('mousedown', () => sendAction(true));
-                btn.addEventListener('mouseup', () => sendAction(false));
-            });
+                const release = (e) => {
+                    e.preventDefault();
+                    if (myInputs[keyName]) {
+                        myInputs[keyName] = false;
+                        btn.classList.remove('active');
+                        sendState();
+                    }
+                };
+
+                btn.addEventListener('touchstart', press, { passive: false });
+                btn.addEventListener('touchend', release, { passive: false });
+                btn.addEventListener('mousedown', press);
+                btn.addEventListener('mouseup', release);
+                btn.addEventListener('mouseleave', release);
+            };
+
+            bindBtn('btn-left', 'left');
+            bindBtn('btn-right', 'right');
+            bindBtn('btn-up', 'up');
+            bindBtn('btn-down', 'down');
+            bindBtn('btn-triangle', 'up');    // Segitiga = Jump
+            bindBtn('btn-cross', 'up');       // X = Jump / Action
+            bindBtn('btn-square', 'run');     // Kotak = Run/Sprint
+            bindBtn('btn-circle', 'action');  // Circle = Action/Fire
         }
 
-        // --- 3. GAME ENGINE (SUPER MARIO 2D) ---
-        const players = {
-            1: { x: 50, y: 300, vx: 0, vy: 0, width: 24, height: 32, color: '#e74c3c', grounded: false, score: 0 },
-            2: { x: 90, y: 300, vx: 0, vy: 0, width: 24, height: 32, color: '#2ecc71', grounded: false, score: 0 }
-        };
+        // Keyboard Controls Fallback (For testing or playing on Laptop keyboard directly)
+        window.addEventListener('keydown', (e) => {
+            // Player 1 Keyboard Controls (WASD)
+            if (e.code === 'KeyA') inputs[1].left = true;
+            if (e.code === 'KeyD') inputs[1].right = true;
+            if (e.code === 'KeyW') inputs[1].up = true;
+            if (e.code === 'KeyS') inputs[1].down = true;
+            if (e.code === 'ShiftLeft') inputs[1].run = true;
 
-        const inputs = {
-            1: { left: false, right: false, up: false, cross: false },
-            2: { left: false, right: false, up: false, cross: false }
-        };
+            // Player 2 Keyboard Controls (Arrow Keys)
+            if (e.code === 'ArrowLeft') inputs[2].left = true;
+            if (e.code === 'ArrowRight') inputs[2].right = true;
+            if (e.code === 'ArrowUp') inputs[2].up = true;
+            if (e.code === 'ArrowDown') inputs[2].down = true;
+            if (e.code === 'ControlRight') inputs[2].run = true;
+        });
 
-        const levelBlocks = [
-            { x: 0, y: 350, w: 2000, h: 50, type: 'ground' },
-            { x: 200, y: 250, w: 40, h: 40, type: 'block' },
-            { x: 240, y: 250, w: 40, h: 40, type: 'coin-block', active: true },
-            { x: 280, y: 250, w: 40, h: 40, type: 'block' },
-            { x: 450, y: 200, w: 100, h: 20, type: 'platform' }
-        ];
+        window.addEventListener('keyup', (e) => {
+            // Player 1 Keyboard Release
+            if (e.code === 'KeyA') inputs[1].left = false;
+            if (e.code === 'KeyD') inputs[1].right = false;
+            if (e.code === 'KeyW') inputs[1].up = false;
+            if (e.code === 'KeyS') inputs[1].down = false;
+            if (e.code === 'ShiftLeft') inputs[1].run = false;
 
-        function handleInput(playerNum, key, state) {
-            if (inputs[playerNum]) {
-                inputs[playerNum][key] = state;
-            }
-        }
+            // Player 2 Keyboard Release
+            if (e.code === 'ArrowLeft') inputs[2].left = false;
+            if (e.code === 'ArrowRight') inputs[2].right = false;
+            if (e.code === 'ArrowUp') inputs[2].up = false;
+            if (e.code === 'ArrowDown') inputs[2].down = false;
+            if (e.code === 'ControlRight') inputs[2].run = false;
+        });
+
+
+        // --- 5. GAME ENGINE CANVAS 2D MARIO PLATFORMER ---
 
         function initGameEngine() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
-            const gravity = 0.5;
 
+            function resizeCanvas() {
+                canvas.width = 1000;
+                canvas.height = 550;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Game World Constants
+            const GRAVITY = 0.55;
+            const WORLD_WIDTH = 3200;
+
+            // Level Elements Structure
+            const platforms = [
+                // Ground Sections
+                { x: 0, y: 480, w: 1200, h: 70 },
+                { x: 1300, y: 480, w: 900, h: 70 },
+                { x: 2300, y: 480, w: 1000, h: 70 },
+
+                // Elevated Platforms & Blocks
+                { x: 300, y: 360, w: 120, h: 30, type: 'brick' },
+                { x: 420, y: 360, w: 40, h: 30, type: 'question', coin: true },
+                { x: 460, y: 360, w: 120, h: 30, type: 'brick' },
+                
+                // Pipe
+                { x: 750, y: 400, w: 60, h: 80, type: 'pipe' },
+                { x: 950, y: 350, w: 60, h: 130, type: 'pipe' },
+
+                // Elevated Blocks P2
+                { x: 1450, y: 340, w: 160, h: 30, type: 'brick' },
+                { x: 1650, y: 240, w: 120, h: 30, type: 'question', coin: true },
+                { x: 1900, y: 380, w: 100, h: 30, type: 'brick' },
+
+                // Goal Castle / Flag Base
+                { x: 2900, y: 200, w: 15, h: 280, type: 'flagpole' },
+                { x: 3000, y: 360, w: 120, h: 120, type: 'castle' }
+            ];
+
+            // Coins
+            let coins = [
+                { x: 320, y: 320, taken: false },
+                { x: 360, y: 320, taken: false },
+                { x: 435, y: 320, taken: false },
+                { x: 1480, y: 300, taken: false },
+                { x: 1530, y: 300, taken: false },
+                { x: 1690, y: 200, taken: false }
+            ];
+
+            // Goomba Enemies
+            let enemies = [
+                { x: 600, y: 450, w: 32, h: 32, vx: -1.2, alive: true },
+                { x: 1100, y: 450, w: 32, h: 32, vx: -1.5, alive: true },
+                { x: 1600, y: 450, w: 32, h: 32, vx: 1.2, alive: true },
+                { x: 2400, y: 450, w: 32, h: 32, vx: -1.8, alive: true }
+            ];
+
+            // Player Factory
+            function createPlayer(id, color, name, startX) {
+                return {
+                    id: id,
+                    name: name,
+                    color: color,
+                    x: startX,
+                    y: 350,
+                    w: 32,
+                    h: 44,
+                    vx: 0,
+                    vy: 0,
+                    isGrounded: false,
+                    score: 0,
+                    lives: 3,
+                    coins: 0,
+                    facing: 'right',
+                    win: false
+                };
+            }
+
+            const p1 = createPlayer(1, '#ef4444', 'MARIO', 100);
+            const p2 = createPlayer(2, '#22c55e', 'LUIGI', 150);
+            const players = [p1, p2];
+
+            let cameraX = 0;
+
+            // Main Game Loop
+            function gameLoop() {
+                update();
+                render();
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Logic Update
             function update() {
-                [1, 2].forEach(pId => {
-                    const p = players[pId];
-                    const input = inputs[pId];
+                players.forEach(p => {
+                    if (p.lives <= 0 || p.win) return;
 
-                    // Movement
-                    if (input.left) p.vx = -4;
-                    else if (input.right) p.vx = 4;
-                    else p.vx = 0;
+                    const input = inputs[p.id];
+                    const speed = input.run ? 5.5 : 3.8;
 
-                    // Jump (Tombol Atas atau Cross / Kali)
-                    if ((input.up || input.cross) && p.grounded) {
-                        p.vy = -11;
-                        p.grounded = false;
-                        playSound('jump');
+                    // Horizontal Movement
+                    if (input.left) {
+                        p.vx = -speed;
+                        p.facing = 'left';
+                    } else if (input.right) {
+                        p.vx = speed;
+                        p.facing = 'right';
+                    } else {
+                        p.vx *= 0.8; // Friction
                     }
 
-                    p.vy += gravity;
-                    p.x += p.vx;
-                    p.y += p.vy;
+                    // Jump Physics
+                    if (input.up && p.isGrounded) {
+                        p.vy = -12.5;
+                        p.isGrounded = false;
+                    }
 
-                    // Collision with ground/blocks
-                    p.grounded = false;
-                    levelBlocks.forEach(b => {
-                        if (p.x < b.x + b.w && p.x + p.width > b.x && p.y < b.y + b.h && p.y + p.height > b.y) {
-                            if (p.vy > 0 && p.y + p.height - p.vy <= b.y) {
-                                p.y = b.y - p.height;
-                                p.vy = 0;
-                                p.grounded = true;
-                            }
+                    // Apply Gravity
+                    p.vy += GRAVITY;
+
+                    // Move Horizontal & Collision
+                    p.x += p.vx;
+                    checkHorizontalCollisions(p);
+
+                    // Move Vertical & Collision
+                    p.y += p.vy;
+                    checkVerticalCollisions(p);
+
+                    // Pitfall Death Check
+                    if (p.y > canvas.height + 100) {
+                        playerDie(p);
+                    }
+
+                    // Coin Pickup Check
+                    coins.forEach(c => {
+                        if (!c.taken && Math.abs(p.x - c.x) < 25 && Math.abs(p.y - c.y) < 30) {
+                            c.taken = true;
+                            p.score += 200;
+                            p.coins += 1;
                         }
                     });
 
-                    // Bounds
-                    if (p.x < 0) p.x = 0;
+                    // Flagpole Finish Line Check
+                    if (p.x >= 2900 && !p.win) {
+                        p.win = true;
+                        p.score += 5000;
+                    }
                 });
 
-                // Render
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Update Enemies
+                enemies.forEach(e => {
+                    if (!e.alive) return;
+                    e.x += e.vx;
 
-                // Draw Blocks
-                levelBlocks.forEach(b => {
-                    ctx.fillStyle = b.type === 'ground' ? '#c0392b' : '#f39c12';
-                    ctx.fillRect(b.x, b.y, b.w, b.h);
-                    ctx.strokeStyle = '#000';
-                    ctx.strokeRect(b.x, b.y, b.w, b.h);
+                    // Reverse direction on bounds/pipe
+                    if (e.x < 500 || e.x > 2800) e.vx *= -1;
+
+                    // Collision with Players
+                    players.forEach(p => {
+                        if (p.lives <= 0 || p.win || !e.alive) return;
+
+                        if (p.x + p.w > e.x && p.x < e.x + e.w &&
+                            p.y + p.h > e.y && p.y < e.y + e.h) {
+                            
+                            // Stomp from top
+                            if (p.vy > 0 && p.y + p.h - p.vy <= e.y + 12) {
+                                e.alive = false;
+                                p.vy = -8;
+                                p.score += 400;
+                            } else {
+                                playerDie(p);
+                            }
+                        }
+                    });
                 });
 
-                // Draw Players
-                [1, 2].forEach(pId => {
-                    const p = players[pId];
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, p.y, p.width, p.height);
-                    
-                    // Eyes
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(p.x + 14, p.y + 6, 6, 6);
-                });
-
-                requestAnimationFrame(update);
+                // Smooth Camera Tracking (Centers between active players)
+                let activePlayers = players.filter(p => p.lives > 0);
+                if (activePlayers.length > 0) {
+                    let avgX = activePlayers.reduce((acc, p) => acc + p.x, 0) / activePlayers.length;
+                    cameraX += (avgX - canvas.width / 3 - cameraX) * 0.08;
+                    cameraX = Math.max(0, Math.min(cameraX, WORLD_WIDTH - canvas.width));
+                }
             }
 
-            update();
+            function playerDie(p) {
+                p.lives -= 1;
+                if (p.lives > 0) {
+                    p.x = cameraX + 100;
+                    p.y = 300;
+                    p.vx = 0;
+                    p.vy = 0;
+                }
+            }
+
+            function checkHorizontalCollisions(p) {
+                platforms.forEach(plat => {
+                    if (plat.type === 'flagpole') return;
+                    if (p.y + p.h > plat.y && p.y < plat.y + plat.h) {
+                        if (p.vx > 0 && p.x + p.w > plat.x && p.x < plat.x) {
+                            p.x = plat.x - p.w;
+                        } else if (p.vx < 0 && p.x < plat.x + plat.w && p.x + p.w > plat.x + plat.w) {
+                            p.x = plat.x + plat.w;
+                        }
+                    }
+                });
+            }
+
+            function checkVerticalCollisions(p) {
+                p.isGrounded = false;
+                platforms.forEach(plat => {
+                    if (plat.type === 'flagpole') return;
+                    if (p.x + p.w > plat.x && p.x < plat.x + plat.w) {
+                        if (p.vy > 0 && p.y + p.h >= plat.y && p.y + p.h - p.vy <= plat.y + 12) {
+                            p.y = plat.y - p.h;
+                            p.vy = 0;
+                            p.isGrounded = true;
+                        } else if (p.vy < 0 && p.y <= plat.y + plat.h && p.y - p.vy >= plat.y + plat.h - 10) {
+                            p.y = plat.y + plat.h;
+                            p.vy = 0;
+                            // Block hit from below
+                            if (plat.type === 'question' && plat.coin) {
+                                plat.coin = false;
+                                p.score += 200;
+                                p.coins += 1;
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Render Graphics
+            function render() {
+                // Clear & Draw Sky
+                ctx.fillStyle = '#6b8cff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.save();
+                ctx.translate(-Math.floor(cameraX), 0);
+
+                // Background Clouds & Hills
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.beginPath();
+                ctx.arc(200, 150, 40, 0, Math.PI * 2);
+                ctx.arc(240, 140, 50, 0, Math.PI * 2);
+                ctx.arc(280, 150, 40, 0, Math.PI * 2);
+                ctx.arc(800, 120, 50, 0, Math.PI * 2);
+                ctx.arc(850, 110, 60, 0, Math.PI * 2);
+                ctx.arc(1500, 160, 50, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw Platforms & Objects
+                platforms.forEach(plat => {
+                    if (plat.type === 'pipe') {
+                        // Green Pipe
+                        ctx.fillStyle = '#15803d';
+                        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                        ctx.fillStyle = '#22c55e';
+                        ctx.fillRect(plat.x - 4, plat.y, plat.w + 8, 24);
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(plat.x - 4, plat.y, plat.w + 8, 24);
+                    } else if (plat.type === 'brick') {
+                        // Brick Block
+                        ctx.fillStyle = '#b45309';
+                        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                        ctx.strokeStyle = '#78350f';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(plat.x, plat.y, plat.w, plat.h);
+                    } else if (plat.type === 'question') {
+                        // Question Mark Block
+                        ctx.fillStyle = plat.coin ? '#eab308' : '#78350f';
+                        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold 16px "Press Start 2P"';
+                        if (plat.coin) ctx.fillText('?', plat.x + 12, plat.y + 22);
+                    } else if (plat.type === 'flagpole') {
+                        // Flagpole
+                        ctx.fillStyle = '#e2e8f0';
+                        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                        // Flag
+                        ctx.fillStyle = '#ef4444';
+                        ctx.beginPath();
+                        ctx.moveTo(plat.x, plat.y);
+                        ctx.lineTo(plat.x - 40, plat.y + 20);
+                        ctx.lineTo(plat.x, plat.y + 40);
+                        ctx.fill();
+                    } else if (plat.type === 'castle') {
+                        // Castle Finish
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(plat.x + 45, plat.y + 70, 30, 50); // Door
+                    } else {
+                        // Ground
+                        ctx.fillStyle = '#16a34a'; // Top Grass
+                        ctx.fillRect(plat.x, plat.y, plat.w, 16);
+                        ctx.fillStyle = '#78350f'; // Dirt
+                        ctx.fillRect(plat.x, plat.y + 16, plat.w, plat.h - 16);
+                    }
+                });
+
+                // Draw Coins
+                coins.forEach(c => {
+                    if (c.taken) return;
+                    ctx.fillStyle = '#facc15';
+                    ctx.beginPath();
+                    ctx.ellipse(c.x, c.y, 8, 12, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ca8a04';
+                    ctx.stroke();
+                });
+
+                // Draw Goomba Enemies
+                enemies.forEach(e => {
+                    if (!e.alive) return;
+                    ctx.fillStyle = '#92400e'; // Brown body
+                    ctx.fillRect(e.x, e.y + 8, e.w, e.h - 8);
+                    ctx.fillStyle = '#fef08a'; // Head
+                    ctx.fillRect(e.x + 4, e.y, e.w - 8, 12);
+                    ctx.fillStyle = '#000'; // Eyes
+                    ctx.fillRect(e.x + 6, e.y + 4, 4, 4);
+                    ctx.fillRect(e.x + 20, e.y + 4, 4, 4);
+                });
+
+                // Draw Players (Mario & Luigi)
+                players.forEach(p => {
+                    if (p.lives <= 0) return;
+
+                    ctx.save();
+                    // Flip sprite based on facing direction
+                    if (p.facing === 'left') {
+                        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+                        ctx.scale(-1, 1);
+                        ctx.translate(-(p.x + p.w / 2), -(p.y + p.h / 2));
+                    }
+
+                    // Hat / Cap
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x + 4, p.y, p.w - 4, 10);
+
+                    // Face / Head
+                    ctx.fillStyle = '#fde047';
+                    ctx.fillRect(p.x + 8, p.y + 10, p.w - 8, 12);
+
+                    // Mustache
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(p.x + 14, p.y + 16, 14, 4);
+
+                    // Shirt & Overalls Body
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x + 4, p.y + 22, p.w - 8, 10);
+                    ctx.fillStyle = '#1d4ed8'; // Blue Overalls
+                    ctx.fillRect(p.x + 6, p.y + 32, p.w - 12, 12);
+
+                    // Shoes
+                    ctx.fillStyle = '#451a03';
+                    ctx.fillRect(p.x + 2, p.y + 40, 10, 4);
+                    ctx.fillRect(p.x + 20, p.y + 40, 10, 4);
+
+                    ctx.restore();
+
+                    // Name Tag Above Player
+                    ctx.font = 'bold 10px "Press Start 2P"';
+                    ctx.fillStyle = p.color;
+                    ctx.fillText(p.name, p.x - 4, p.y - 8);
+
+                    if (p.win) {
+                        ctx.fillStyle = '#facc15';
+                        ctx.fillText('FINISH!', p.x - 10, p.y - 22);
+                    }
+                });
+
+                ctx.restore();
+
+                // Draw HUD Overhead Overlay
+                drawHUD(ctx, p1, p2);
+            }
+
+            function drawHUD(ctx, p1, p2) {
+                ctx.font = '12px "Press Start 2P"';
+
+                // P1 HUD (Left)
+                ctx.fillStyle = '#ef4444';
+                ctx.fillText(`MARIO P1`, 20, 30);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`SCORE: ${p1.score}`, 20, 50);
+                ctx.fillText(`LIVES: ${'❤️'.repeat(Math.max(0, p1.lives))}`, 20, 70);
+
+                // P2 HUD (Right)
+                ctx.fillStyle = '#22c55e';
+                ctx.fillText(`LUIGI P2`, canvas.width - 180, 30);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`SCORE: ${p2.score}`, canvas.width - 180, 50);
+                ctx.fillText(`LIVES: ${'❤️'.repeat(Math.max(0, p2.lives))}`, canvas.width - 180, 70);
+            }
+
+            // Start Animation Loop
+            gameLoop();
         }
 
-        // Auto Detect Parameters (Jika discan dari QR Code)
-        window.onload = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const playerParam = urlParams.get('player');
-            if (playerParam) {
-                startController(parseInt(playerParam));
-            }
-        };
     </script>
 </body>
 </html>
