@@ -6,7 +6,7 @@
     <title>Fireboy & Watergirl Easy Controller</title>
     <!-- PeerJS untuk koneksi antar HP dan Laptop -->
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <!-- Library QR Code agar HP bisa scan langsung -->
+    <!-- Library QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background: #121212; color: #fff; text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 15px; user-select: none; }
@@ -59,21 +59,20 @@
         const urlParams = new URLSearchParams(window.location.search);
         const roomParam = urlParams.get('room');
 
-        // Membuat ID unik pendek untuk ruangan
         const myId = roomParam || ('fw-' + Math.random().toString(36).substring(2, 7));
         const peer = new Peer(myId);
         let connection = null;
 
         peer.on('open', (id) => {
             if (!roomParam) {
-                // INI TAMPILAN DI LAPTOP
+                // TAMPILAN DI LAPTOP
                 const currentUrl = window.location.href.split('?')[0];
                 const targetLink = currentUrl + '?room=' + id;
                 
-                document.getElementById('controller-link.href').href = targetLink;
-                document.getElementById('controller-link').innerText = targetLink;
+                const linkEl = document.getElementById('controller-link');
+                linkEl.href = targetLink;
+                linkEl.innerText = targetLink;
 
-                // Generate QR Code otomatis
                 document.getElementById('qrcode').innerHTML = "";
                 new QRCode(document.getElementById("qrcode"), {
                     text: targetLink,
@@ -81,10 +80,9 @@
                     height: 150
                 });
             } else {
-                // INI TAMPILAN OTOMATIS DI HP SAAT LINK DIBUKA
+                // TAMPILAN OTOMATIS DI HP
                 document.getElementById('laptop-view').style.display = 'none';
                 
-                // Langsung menyambung otomatis ke laptop berdasarkan parameter room
                 connection = peer.connect(roomParam);
                 
                 connection.on('open', () => {
@@ -93,7 +91,6 @@
             }
         });
 
-        // Jika di laptop, terima koneksi masuk dari HP
         peer.on('connection', (conn) => {
             connection = conn;
             const statusEl = document.getElementById('host-status');
@@ -105,7 +102,6 @@
             });
         });
 
-        // Tombol diklik/disentuh di HP
         const buttons = document.querySelectorAll('.ctrl-btn');
         buttons.forEach(btn => {
             const key = btn.getAttribute('data-key');
@@ -120,7 +116,7 @@
                 });
             });
 
-            ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+            ['touchend', 'mouseup', 'mouseleave'].forEach, evt => {
                 btn.addEventListener(evt, (e) => {
                     e.preventDefault();
                     btn.classList.remove('pressed');
@@ -131,7 +127,6 @@
             });
         });
 
-        // Mensimulasikan tombol keyboard di laptop
         function simulateKeyboard(key, action) {
             const eventType = action === 'down' ? 'keydown' : 'keyup';
             let code = 'Key' + key.toUpperCase();
