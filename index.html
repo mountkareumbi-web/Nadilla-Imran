@@ -3,52 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fireboy & Watergirl Wireless Controller</title>
+    <title>Fireboy & Watergirl Easy Controller</title>
+    <!-- PeerJS untuk koneksi antar HP dan Laptop -->
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- Library QR Code agar HP bisa scan langsung -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { background: #1a1a1a; color: #fff; text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 20px; user-select: none; }
-        .box { background: #2a2a2a; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 20px; max-width: 450px; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        button { background: #007bff; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0056b3; }
-        .status { margin-top: 15px; font-weight: bold; color: #ffc107; font-size: 14px; }
+        body { background: #121212; color: #fff; text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 15px; user-select: none; }
+        .box { background: #1e1e1e; padding: 20px; border-radius: 12px; display: inline-block; margin-top: 15px; max-width: 400px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        h1 { font-size: 20px; color: #ffcc00; }
+        h3 { font-size: 16px; color: #00d2ff; }
+        .status { margin-top: 15px; font-weight: bold; color: #ff4d4d; font-size: 15px; }
+        .connected { color: #28a745 !important; }
         
-        /* Tampilan Controller di HP */
-        #controller-ui { display: none; margin-top: 20px; }
-        .controller-grid { display: grid; grid-template-columns: repeat(3, 85px); grid-template-rows: repeat(2, 85px); gap: 12px; justify-content: center; margin-top: 20px; }
+        /* Tampilan Stik di HP */
+        #controller-ui { display: none; margin-top: 10px; }
+        .controller-grid { display: grid; grid-template-columns: repeat(3, 85px); grid-template-rows: repeat(2, 85px); gap: 12px; justify-content: center; margin-top: 25px; }
         .ctrl-btn { background: #007bff; color: white; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px #004085; -webkit-tap-highlight-color: transparent; }
         .ctrl-btn:active, .ctrl-btn.pressed { background: #004085; transform: translateY(3px); box-shadow: 0 1px #002752; }
         .empty { visibility: hidden; }
-        input { padding: 10px; font-size: 14px; width: 80%; text-align: center; margin-top: 10px; border-radius: 5px; border: 1px solid #444; background: #333; color: #fff; }
+        #qrcode { background: white; padding: 10px; display: inline-block; border-radius: 8px; margin-top: 10px; }
+        a { color: #4da6ff; word-break: break-all; font-size: 13px; }
     </style>
 </head>
 <body>
 
     <h1>🎮 Fireboy & Watergirl Controller</h1>
 
-    <!-- TAMPILAN UNTUK LAPTOP -->
+    <!-- TAMPILAN LAPTOP (HOST) -->
     <div class="box" id="laptop-view">
-        <h3>Mode Laptop (Host Game)</h3>
-        <p style="font-size: 14px; color: #ccc;">Gunakan keyboard laptop untuk <b>Fireboy (Tombol Panah)</b>.</p>
-        <p style="font-size: 14px; color: #ccc;">Untuk Watergirl (Air), buka link di bawah ini lewat HP Anda:</p>
-        <p>ID Host Anda:</p>
-        <h2 id="my-peer-id" style="color: #00ffcc; margin: 5px;">Memuat...</h2>
-        <div class="status" id="host-status">Status HP: Menunggu terhubung...</div>
+        <h3>Hubungkan HP untuk Watergirl</h3>
+        <p style="font-size: 13px; color: #ccc;">Scan QR Code di bawah ini menggunakan kamera HP Anda:</p>
+        <div id="qrcode"></div>
+        <p style="font-size: 12px; margin-top: 10px;">Atau buka link ini di HP:</p>
+        <a id="controller-link" href="#" target="_blank">Memuat link...</a>
+        <div class="status" id="host-status">Status: Menunggu HP terhubung...</div>
     </div>
 
-    <!-- TAMPILAN UNTUK HP -->
-    <div class="box" id="hp-setup-view">
-        <h3>Mode HP (Stik Watergirl)</h3>
-        <p style="font-size: 13px; color: #aaa;">Jika Anda membuka halaman ini di HP, masukkan ID Host yang muncul di layar laptop:</p>
-        <input type="text" id="target-id" placeholder="Masukkan ID Host Laptop">
-        <br><br>
-        <button id="connect-hp-btn">Hubungkan ke Laptop</button>
-        <div class="status" id="hp-status-text">Status: Belum Terhubung</div>
-    </div>
-
-    <!-- TOMBOL STIK VIRTUAL DI HP -->
-    <div id="controller-ui">
-        <h2 style="color: #00d2ff; margin: 5px;">💧 WATERGIRL CONTROLLER</h2>
-        <p style="font-size: 12px; color: #28a745; font-weight: bold;">Terhubung ke Laptop! ✅</p>
+    <!-- TAMPILAN STIK DI HP -->
+    <div id="controller-ui" class="box">
+        <h3 style="color: #00d2ff; margin: 0;">💧 WATERGIRL CONTROLLER</h3>
+        <p class="status connected" style="margin: 5px 0 15px 0;">Terhubung ke Laptop! ✅</p>
         <div class="controller-grid">
             <div class="empty"></div>
             <button class="ctrl-btn" data-key="w">W<br>▲</button>
@@ -62,57 +57,55 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const roomId = urlParams.get('room');
+        const roomParam = urlParams.get('room');
 
-        let peer = new Peer();
+        // Membuat ID unik pendek untuk ruangan
+        const myId = roomParam || ('fw-' + Math.random().toString(36).substring(2, 7));
+        const peer = new Peer(myId);
         let connection = null;
 
         peer.on('open', (id) => {
-            if (!roomId) {
-                // Jika dibuka di Laptop
-                document.getElementById('my-peer-id').innerText = id;
-                document.getElementById('hp-setup-view').style.display = 'none'; // Sembunyikan form HP di laptop
+            if (!roomParam) {
+                // INI TAMPILAN DI LAPTOP
+                const currentUrl = window.location.href.split('?')[0];
+                const targetLink = currentUrl + '?room=' + id;
+                
+                document.getElementById('controller-link.href').href = targetLink;
+                document.getElementById('controller-link').innerText = targetLink;
+
+                // Generate QR Code otomatis
+                document.getElementById('qrcode').innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), {
+                    text: targetLink,
+                    width: 150,
+                    height: 150
+                });
             } else {
-                // Jika dibuka di HP langsung dengan membawa parameter room
+                // INI TAMPILAN OTOMATIS DI HP SAAT LINK DIBUKA
                 document.getElementById('laptop-view').style.display = 'none';
-                document.getElementById('hp-setup-view').style.display = 'none';
-                connectToHost(roomId);
+                
+                // Langsung menyambung otomatis ke laptop berdasarkan parameter room
+                connection = peer.connect(roomParam);
+                
+                connection.on('open', () => {
+                    document.getElementById('controller-ui').style.display = 'block';
+                });
             }
         });
 
-        // Jika dibuka di laptop, tunggu HP menyambung masuk
+        // Jika di laptop, terima koneksi masuk dari HP
         peer.on('connection', (conn) => {
             connection = conn;
-            document.getElementById('host-status').innerText = "Status HP: Terhubung! ✅ (Watergirl Aktif)";
-            document.getElementById('host-status').style.color = "#28a745";
+            const statusEl = document.getElementById('host-status');
+            statusEl.innerText = "Status: HP Terhubung! ✅ (Silakan mainkan gamenya)";
+            statusEl.className = "status connected";
 
             conn.on('data', (data) => {
                 simulateKeyboard(data.key, data.action);
             });
         });
 
-        // Tombol Hubungkan di HP
-        document.getElementById('connect-hp-btn').addEventListener('click', () => {
-            const targetId = document.getElementById('target-id').value.trim();
-            if(!targetId) {
-                alert("Masukkan ID Host yang ada di layar laptop terlebih dahulu!");
-                return;
-            }
-            connectToHost(targetId);
-        });
-
-        function connectToHost(id) {
-            document.getElementById('hp-status-text').innerText = "Menghubungkan...";
-            connection = peer.connect(id);
-
-            connection.on('open', () => {
-                document.getElementById('hp-setup-view').style.display = 'none';
-                document.getElementById('laptop-view').style.display = 'none';
-                document.getElementById('controller-ui').style.display = 'block';
-            });
-        }
-
-        // Mengirim sinyal tombol dari HP ke Laptop
+        // Tombol diklik/disentuh di HP
         const buttons = document.querySelectorAll('.ctrl-btn');
         buttons.forEach(btn => {
             const key = btn.getAttribute('data-key');
@@ -121,7 +114,9 @@
                 btn.addEventListener(evt, (e) => {
                     e.preventDefault();
                     btn.classList.add('pressed');
-                    if (connection && connection.open) connection.send({ key: key, action: 'down' });
+                    if (connection && connection.open) {
+                        connection.send({ key: key, action: 'down' });
+                    }
                 });
             });
 
@@ -129,19 +124,17 @@
                 btn.addEventListener(evt, (e) => {
                     e.preventDefault();
                     btn.classList.remove('pressed');
-                    if (connection && connection.open) connection.send({ key: key, action: 'up' });
+                    if (connection && connection.open) {
+                        connection.send({ key: key, action: 'up' });
+                    }
                 });
             });
         });
 
-        // Laptop mengeksekusi tombol keyboard secara virtual
+        // Mensimulasikan tombol keyboard di laptop
         function simulateKeyboard(key, action) {
             const eventType = action === 'down' ? 'keydown' : 'keyup';
-            let code = '';
-            if (key === 'w') code = 'KeyW';
-            if (key === 'a') code = 'KeyA';
-            if (key === 's') code = 'KeyS';
-            if (key === 'd') code = 'KeyD';
+            let code = 'Key' + key.toUpperCase();
 
             const evt = new KeyboardEvent(eventType, {
                 key: key,
