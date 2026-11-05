@@ -80,11 +80,11 @@
             <div class="space-y-3">
                 <button onclick="selectPlayer('Nadilla')" class="w-full py-3.5 px-6 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
                     <span>🌸</span>
-                    <span>Nadilla (14 Des 2008)</span>
+                    <span>Nadilla</span>
                 </button>
                 <button onclick="selectPlayer('Imran')" class="w-full py-3.5 px-6 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center space-x-2">
                     <span>👑</span>
-                    <span>Muhammad Dede Imran (6 Agt 2002)</span>
+                    <span>Muhammad Dede Imran</span>
                 </button>
             </div>
         </div>
@@ -100,10 +100,10 @@
                 <div class="bg-rose-50/80 rounded-2xl p-3 border border-rose-100 mb-2">
                     <p class="text-xs text-rose-700 font-medium">Hubungan saat ini sudah:</p>
                     <p id="counter-days" class="text-2xl sm:text-3xl font-black text-rose-600 mt-1">... Hari</p>
-                    <p class="text-[10px] text-rose-500 mt-1">Sejak berpasangan pada 20 Juli 2026</p>
+                    <p class="text-[10px] text-rose-500 mt-1">Sejak berpasangan pada 15 Juli 2026</p>
                 </div>
                 <div class="flex justify-around text-[11px] text-rose-800 font-semibold pt-1 border-t border-rose-100">
-                    <span>🌸 Nadilla (14 Des '08)</span>
+                    <span>🌸 Nadilla (14 Des '09)</span>
                     <span>•</span>
                     <span>👑 Imran (6 Agt '02)</span>
                 </div>
@@ -182,9 +182,9 @@
         }
         createHearts();
 
-        // Hitung Hari Jadian Otomatis (20 Juli 2026)
+        // Hitung Hari Jadian Otomatis (15 Juli 2026)
         function updateDaysCounter() {
-            const startDate = new Date('2026-07-20T00:00:00');
+            const startDate = new Date('2026-07-15T00:00:00');
             const today = new Date();
             // Reset waktu untuk hitungan hari penuh
             const diffTime = today.setHours(0,0,0,0) - startDate.setHours(0,0,0,0);
@@ -260,7 +260,7 @@
                     <h3 class="text-xl font-bold text-rose-900 mb-3 text-center">💌 Surat Cinta Harian</h3>
                     <p class="text-xs text-rose-700 mb-3 text-center">Pesan spesial untuk ${currentPlayer === 'Nadilla' ? 'Imran' : 'Nadilla'}:</p>
                     <div class="bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-900 text-sm italic leading-relaxed mb-4">
-                        "Terima kasih sudah berjalan bersama dalam lembaran baru kisah cinta kita sejak 20 Juli 2026. Semoga hari-hariku dan harimu selalu dipenuhi senyuman dan kebahagiaan."
+                        "Terima kasih sudah berjalan bersama dalam lembaran baru kisah cinta kita sejak 15 Juli 2026. Semoga hari-hariku dan harimu selalu dipenuhi senyuman dan kebahagiaan."
                     </div>
                     <button onclick="closeModal()" class="w-full py-2.5 bg-rose-500 text-white font-bold rounded-xl text-sm">Tutup Surat</button>
                 `;
@@ -279,7 +279,7 @@
                     </div>
                 `;
             } else if (type === 'certificate') {
-                const startDate = new Date('2026-07-20T00:00:00');
+                const startDate = new Date('2026-07-15T00:00:00');
                 const today = new Date();
                 const diffDays = Math.floor((today.setHours(0,0,0,0) - startDate.setHours(0,0,0,0)) / (1000 * 60 * 60 * 24));
                 
@@ -289,7 +289,7 @@
                         <h4 class="font-script text-3xl text-rose-600 font-bold mt-1">Sertifikat Cinta Sejati</h4>
                         <p class="text-[10px] text-rose-700 uppercase tracking-widest mt-1">Diberikan secara resmi kepada:</p>
                         <p class="text-base font-extrabold text-rose-900 my-1">Nadilla & Imran</p>
-                        <p class="text-xs text-rose-600 mb-3">Telah sah menjalin hubungan indah selama <span class="font-bold">${diffDays >= 0 ? diffDays : 0} hari</span> sejak 20 Juli 2026.</p>
+                        <p class="text-xs text-rose-600 mb-3">Telah sah menjalin hubungan indah selama <span class="font-bold">${diffDays >= 0 ? diffDays : 0} hari</span> sejak 15 Juli 2026.</p>
                         <div class="text-[10px] text-rose-500 italic border-t border-rose-200 pt-2">"Bersama mengukir cerita cinta abadi."</div>
                     </div>
                 `;
