@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controller Watergirl</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #111; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 20px; user-select: none; }
+        h2 { color: #00d2ff; margin: 5px; }
+        .status { font-size: 14px; margin-bottom: 20px; }
+        .controller { display: grid; grid-template-columns: repeat(3, 90px); grid-template-rows: repeat(2, 90px); gap: 15px; justify-content: center; margin-top: 40px; }
+        .btn { background: #007bff; color: white; font-size: 22px; font-weight: bold; border: none; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px #0056b3; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .btn:active, .pressed { background: #0056b3; transform: translateY(4px); box-shadow: 0 1px #003d82; }
+        .empty { visibility: hidden; }
+    </style>
+</head>
+<body>
+    <h2>💧 WATERGIRL CONTROLLER</h2>
+    <div class="status" id="conn-status">Menghubungkan ke laptop...</div>
+
+    <div class="controller">
+        <div class="empty"></div>
+        <button class="btn" id="btn-w" data-key="w">W<br>▲</button>
+        <div class="empty"></div>
+        
+        <button class="btn" id="btn-a" data-key="a">A<br>◄</button>
+        <button class="btn" id="btn-s" data-key="s">S<br>▼</button>
+        <button class="btn" id="btn-d" data-key="d">D<br>►</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostId = urlParams.get('id');
+
+        const peer = new Peer();
+        let conn = null;
+
+        peer.on('open', () => {
+            document.getElementById('conn-status').innerText = "Menghubungkan ke ID: " + hostId;
+            conn = peer.connect(hostId);
+            
+            conn.on('open', () => {
+                document.getElementById('conn-status').innerText = "Terhubung ke Laptop! 🎮✅";
+                document.getElementById('conn-status').style.color = "#28a745";
+            });
+        });
+
+        // Mengatur event tombol ditekan/dilepas di layar HP
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            const key = button.getAttribute('data-key');
+
+            ['touchstart', 'mousedown'].forEach(evt => {
+                button.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    button.classList.add('pressed');
+                    if (conn && conn.open) conn.send({ key: key, action: 'down' });
+                });
+            });
+
+            ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                button.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    button.classList.remove('pressed');
+                    if (conn && conn.open) conn.send({ key: key, action: 'up' });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
