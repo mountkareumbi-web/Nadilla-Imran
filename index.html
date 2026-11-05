@@ -2,111 +2,155 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fireboy & Watergirl - Bluetooth Controller Bridge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fireboy & Watergirl Wireless Controller</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; text-align: center; padding: 20px; }
-        .card { background: #2a2a2a; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 20px; max-width: 500px; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        button { background: #007bff; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        body { background: #1a1a1a; color: #fff; text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 20px; user-select: none; }
+        .box { background: #2a2a2a; padding: 20px; border-radius: 10px; display: inline-block; margin-top: 20px; max-width: 450px; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        button { background: #007bff; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         button:hover { background: #0056b3; }
-        .status { margin-top: 15px; font-weight: bold; color: #ffc107; }
-        .info { font-size: 14px; color: #aaa; text-align: left; margin-top: 15px; line-height: 1.5; }
-        .controls-box { background: #333; padding: 10px; border-radius: 5px; margin-top: 10px; font-family: monospace; color: #00ffcc; }
+        .status { margin-top: 15px; font-weight: bold; color: #ffc107; font-size: 14px; }
+        
+        /* Tampilan Controller di HP */
+        #controller-ui { display: none; margin-top: 20px; }
+        .controller-grid { display: grid; grid-template-columns: repeat(3, 85px); grid-template-rows: repeat(2, 85px); gap: 12px; justify-content: center; margin-top: 20px; }
+        .ctrl-btn { background: #007bff; color: white; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px #004085; -webkit-tap-highlight-color: transparent; }
+        .ctrl-btn:active, .ctrl-btn.pressed { background: #004085; transform: translateY(3px); box-shadow: 0 1px #002752; }
+        .empty { visibility: hidden; }
+        input { padding: 10px; font-size: 14px; width: 80%; text-align: center; margin-top: 10px; border-radius: 5px; border: 1px solid #444; background: #333; color: #fff; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 Fireboy & Watergirl Controller Bridge</h1>
-    <p>Player 1 (Fireboy): Gunakan <b>Keyboard Laptop</b> (Tombol Panah / Arrow Keys).</p>
-    <p>Player 2 (Watergirl): Gunakan <b>HP via Bluetooth Controller</b>.</p>
+    <h1>🎮 Fireboy & Watergirl Controller</h1>
 
-    <div class="card">
-        <h3>Koneksi Perangkat HP</h3>
-        <p>Pastikan HP sudah dipairing (tersambung) via Bluetooth ke laptop Anda, lalu klik tombol di bawah untuk mendeteksinya:</p>
-        <button id="connect-btn">Hubungkan Controller HP</button>
-        <div class="status" id="status-text">Status: Belum Terhubung</div>
-        
-        <div class="controls-box" id="log-box">
-            Menunggu sinyal tombol dari HP...
-        </div>
+    <!-- TAMPILAN UNTUK LAPTOP -->
+    <div class="box" id="laptop-view">
+        <h3>Mode Laptop (Host Game)</h3>
+        <p style="font-size: 14px; color: #ccc;">Gunakan keyboard laptop untuk <b>Fireboy (Tombol Panah)</b>.</p>
+        <p style="font-size: 14px; color: #ccc;">Untuk Watergirl (Air), buka link di bawah ini lewat HP Anda:</p>
+        <p>ID Host Anda:</p>
+        <h2 id="my-peer-id" style="color: #00ffcc; margin: 5px;">Memuat...</h2>
+        <div class="status" id="host-status">Status HP: Menunggu terhubung...</div>
+    </div>
 
-        <div class="info">
-            <strong>Catatan Penting:</strong><br>
-            • Buka game Fireboy & Watergirl di tab terpisah.<br>
-            • Pastikan fokus layar (klik) aktif di dalam game agar tombol dari HP/Keyboard merespons pergerakan karakter.
+    <!-- TAMPILAN UNTUK HP -->
+    <div class="box" id="hp-setup-view">
+        <h3>Mode HP (Stik Watergirl)</h3>
+        <p style="font-size: 13px; color: #aaa;">Jika Anda membuka halaman ini di HP, masukkan ID Host yang muncul di layar laptop:</p>
+        <input type="text" id="target-id" placeholder="Masukkan ID Host Laptop">
+        <br><br>
+        <button id="connect-hp-btn">Hubungkan ke Laptop</button>
+        <div class="status" id="hp-status-text">Status: Belum Terhubung</div>
+    </div>
+
+    <!-- TOMBOL STIK VIRTUAL DI HP -->
+    <div id="controller-ui">
+        <h2 style="color: #00d2ff; margin: 5px;">💧 WATERGIRL CONTROLLER</h2>
+        <p style="font-size: 12px; color: #28a745; font-weight: bold;">Terhubung ke Laptop! ✅</p>
+        <div class="controller-grid">
+            <div class="empty"></div>
+            <button class="ctrl-btn" data-key="w">W<br>▲</button>
+            <div class="empty"></div>
+            
+            <button class="ctrl-btn" data-key="a">A<br>◄</button>
+            <button class="ctrl-btn" data-key="s">S<br>▼</button>
+            <button class="ctrl-btn" data-key="d">D<br>►</button>
         </div>
     </div>
 
     <script>
-        let connectedGamepadIndex = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room');
 
-        // Mendeteksi ketika stik/controller Bluetooth HP terdeteksi oleh browser
-        window.addEventListener("gamepadconnected", (e) => {
-            console.log("Gamepad terhubung:", e.gamepad);
-            connectedGamepadIndex = e.gamepad.index;
-            document.getElementById("status-text").innerText = "Status: Terhubung ke " + e.gamepad.id;
-            document.getElementById("status-text").style.color = "#28a745";
-            requestAnimationFrame(pollGamepad);
-        });
+        let peer = new Peer();
+        let connection = null;
 
-        window.addEventListener("gamepaddisconnected", (e) => {
-            if (connectedGamepadIndex === e.gamepad.index) {
-                connectedGamepadIndex = null;
-                document.getElementById("status-text").innerText = "Status: Terputus";
-                document.getElementById("status-text").style.color = "#dc3545";
+        peer.on('open', (id) => {
+            if (!roomId) {
+                // Jika dibuka di Laptop
+                document.getElementById('my-peer-id').innerText = id;
+                document.getElementById('hp-setup-view').style.display = 'none'; // Sembunyikan form HP di laptop
+            } else {
+                // Jika dibuka di HP langsung dengan membawa parameter room
+                document.getElementById('laptop-view').style.display = 'none';
+                document.getElementById('hp-setup-view').style.display = 'none';
+                connectToHost(roomId);
             }
         });
 
-        document.getElementById("connect-btn").addEventListener("click", () => {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            let found = false;
-            for (let i = 0; i < gamepads.length; i++) {
-                if (gamepads[i]) {
-                    connectedGamepadIndex = i;
-                    found = true;
-                    document.getElementById("status-text").innerText = "Status: Terhubung ke " + gamepads[i].id;
-                    document.getElementById("status-text").style.color = "#28a745";
-                    requestAnimationFrame(pollGamepad);
-                    break;
-                }
-            }
-            if (!found) {
-                alert("Controller HP belum terdeteksi. Pastikan HP sudah tersambung lewat pengaturan Bluetooth Laptop, lalu tekan tombol apa saja di HP.");
-            }
+        // Jika dibuka di laptop, tunggu HP menyambung masuk
+        peer.on('connection', (conn) => {
+            connection = conn;
+            document.getElementById('host-status').innerText = "Status HP: Terhubung! ✅ (Watergirl Aktif)";
+            document.getElementById('host-status').style.color = "#28a745";
+
+            conn.on('data', (data) => {
+                simulateKeyboard(data.key, data.action);
+            });
         });
 
-        // Loop untuk membaca tombol dari HP dan menerjemahkannya ke WASD (Watergirl)
-        function pollGamepad() {
-            if (connectedGamepadIndex !== null) {
-                const gamepads = navigator.getGamepads();
-                const gp = gamepads[connectedGamepadIndex];
-
-                if (gp) {
-                    // Mapping tombol standard gamepad ke tombol WASD Watergirl
-                    // Tombol 0 (A/Cross), 12 (Dpad Atas), 13 (Bawah), 14 (Kiri), 15 (Kanan)
-                    let movingKey = "";
-                    
-                    // Contoh mapping D-Pad atau Analog ke WASD
-                    if (gp.buttons[12].pressed || gp.axes[1] < -0.5) sendSimulatedKey('KeyW', 'W', 'down');
-                    else if (gp.buttons[13].pressed || gp.axes[1] > 0.5) sendSimulatedKey('KeyS', 'S', 'down');
-                    else if (gp.buttons[14].pressed || gp.axes[0] < -0.5) sendSimulatedKey('KeyA', 'A', 'down');
-                    else if (gp.buttons[15].pressed || gp.axes[0] > 0.5) sendSimulatedKey('KeyD', 'D', 'down');
-                }
-                requestAnimationFrame(pollGamepad);
+        // Tombol Hubungkan di HP
+        document.getElementById('connect-hp-btn').addEventListener('click', () => {
+            const targetId = document.getElementById('target-id').value.trim();
+            if(!targetId) {
+                alert("Masukkan ID Host yang ada di layar laptop terlebih dahulu!");
+                return;
             }
+            connectToHost(targetId);
+        });
+
+        function connectToHost(id) {
+            document.getElementById('hp-status-text').innerText = "Menghubungkan...";
+            connection = peer.connect(id);
+
+            connection.on('open', () => {
+                document.getElementById('hp-setup-view').style.display = 'none';
+                document.getElementById('laptop-view').style.display = 'none';
+                document.getElementById('controller-ui').style.display = 'block';
+            });
         }
 
-        function sendSimulatedKey(code, key, action) {
-            document.getElementById("log-box").innerText = `Tombol HP Ditekan -> Mengirim: ${key}`;
-            
-            // Mensimulasikan event keyboard ke sistem agar game merespons
-            const eventDown = new KeyboardEvent('keydown', { code: code, key: key, bubbles: true });
-            window.dispatchEvent(eventDown);
+        // Mengirim sinyal tombol dari HP ke Laptop
+        const buttons = document.querySelectorAll('.ctrl-btn');
+        buttons.forEach(btn => {
+            const key = btn.getAttribute('data-key');
 
-            setTimeout(() => {
-                const eventUp = new KeyboardEvent('keyup', { code: code, key: key, bubbles: true });
-                window.dispatchEvent(eventUp);
-            }, 100);
+            ['touchstart', 'mousedown'].forEach(evt => {
+                btn.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    btn.classList.add('pressed');
+                    if (connection && connection.open) connection.send({ key: key, action: 'down' });
+                });
+            });
+
+            ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                btn.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    btn.classList.remove('pressed');
+                    if (connection && connection.open) connection.send({ key: key, action: 'up' });
+                });
+            });
+        });
+
+        // Laptop mengeksekusi tombol keyboard secara virtual
+        function simulateKeyboard(key, action) {
+            const eventType = action === 'down' ? 'keydown' : 'keyup';
+            let code = '';
+            if (key === 'w') code = 'KeyW';
+            if (key === 'a') code = 'KeyA';
+            if (key === 's') code = 'KeyS';
+            if (key === 'd') code = 'KeyD';
+
+            const evt = new KeyboardEvent(eventType, {
+                key: key,
+                code: code,
+                bubbles: true,
+                cancelable: true
+            });
+            document.dispatchEvent(evt);
+            window.dispatchEvent(evt);
         }
     </script>
 </body>
