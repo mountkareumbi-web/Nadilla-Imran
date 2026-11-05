@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Super Mario Bros - Web Remote Multiplayer</title>
-    <!-- PeerJS Library untuk Koneksi Direct Peer-to-Peer -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- PubNub SDK untuk Sync Multiplayer di Semua Browser Termasuk iPhone Safari -->
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -96,7 +96,7 @@
         .btn-multiplayer { background: #16a34a; color: white; }
         .btn-subtext { font-size: 0.75rem; opacity: 0.8; font-weight: normal; }
 
-        /* SCREEN 2: MULTIPLAYER SLOT SELECTION (HP) */
+        /* SCREEN 2: PILIH SLOT STICK (HP) */
         #slot-screen {
             display: none;
             flex-direction: column;
@@ -186,7 +186,7 @@
             image-rendering: pixelated;
         }
 
-        /* SCREEN 4: HP CONTROLLER LANDSCAPE STICK */
+        /* SCREEN 4: HP CONTROLLER STICK */
         #controller-screen {
             display: none;
             width: 100vw;
@@ -211,21 +211,12 @@
             gap: 12px;
             align-items: center;
         }
-        .fullscreen-btn {
-            background: #3b82f6;
-            border: none;
-            color: white;
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
         
         /* D-PAD LANDSCAPE */
         .dpad-container {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 25px;
+            left: 25px;
             width: 160px;
             height: 160px;
         }
@@ -254,8 +245,8 @@
         /* ACTION BUTTONS */
         .action-container {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 25px;
+            right: 25px;
             width: 160px;
             height: 160px;
         }
@@ -282,7 +273,7 @@
         .btn-circle   { top: 54px; right: 0; background: #ef4444; }
         .btn-cross    { bottom: 0; left: 54px; background: #3b82f6; }
 
-        /* Orientation Warning HP */
+        /* ORIENTATION WARNING */
         #orientation-warning {
             display: none;
             position: fixed;
@@ -295,7 +286,7 @@
             text-align: center;
             padding: 20px;
         }
-        @media (max-width: 600px) and (orientation: portrait) {
+        @media (max-width: 768px) and (orientation: portrait) {
             .mobile-mode #orientation-warning {
                 display: flex;
             }
@@ -307,7 +298,7 @@
     <!-- SCREEN 1: MENU UTAMA -->
     <div id="menu-screen">
         <h1 class="title">SUPER MARIO BROS</h1>
-        <p class="subtitle">Multi-Device Remote Web Controller</p>
+        <p class="subtitle">Multi-Device Remote Web Controller (iOS Compatible)</p>
         
         <div class="room-box">
             <label for="room-id">Kode Room:</label>
@@ -333,12 +324,12 @@
 
         <button id="btn-slot-p1" class="slot-btn slot-p1" onclick="claimSlot('p1')">
             <span>🎮 STICK 1 (PLAYER 1)</span>
-            <span id="badge-p1" class="status-badge">SIAP TEKAN</span>
+            <span id="badge-p1" class="status-badge">TERSEDIA</span>
         </button>
 
         <button id="btn-slot-p2" class="slot-btn slot-p2" onclick="claimSlot('p2')">
             <span>🎮 STICK 2 (PLAYER 2)</span>
-            <span id="badge-p2" class="status-badge">SIAP TEKAN</span>
+            <span id="badge-p2" class="status-badge">TERSEDIA</span>
         </button>
 
         <p id="slot-error" style="color: #ef4444; margin-top: 15px; font-size: 0.85rem; height: 20px;"></p>
@@ -352,7 +343,6 @@
                 <div id="p1-status" class="player-tag p1-tag">P1: DISCONNECTED</div>
                 <div id="p2-status" class="player-tag p2-tag">P2: DISCONNECTED</div>
             </div>
-            <button class="fullscreen-btn" onclick="toggleFullScreen()">Full Screen</button>
         </div>
         <div id="canvas-wrapper">
             <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -363,7 +353,6 @@
     <div id="controller-screen">
         <div class="controller-header">
             <span id="stick-title">STICK PLAYER</span>
-            <button class="fullscreen-btn" onclick="toggleFullScreen()">Layar Penuh</button>
         </div>
 
         <!-- D-PAD KIRI -->
@@ -392,24 +381,22 @@
     </div>
 
     <script>
+        // Init PubNub Service
+        const pubnub = new PubNub({
+            subscribeKey: 'sub-c-5e4c4146-28ce-4122-b258-0bc9e36ebff5',
+            publishKey: 'pub-c-4c609f3e-4b77-4a0f-a3ff-2a1e3597d5a5',
+            uuid: 'user_' + Math.random().toString(36).substring(2, 9)
+        });
+
         let currentRoom = "MARIO1";
         let assignedPlayer = null;
-        let peer = null;
-        let connToHost = null;
-        const hostConnections = { p1: null, p2: null };
+        let isDisplay = false;
+        const slotOccupied = { p1: false, p2: false };
 
         const inputs = {
             p1: { left: false, right: false, up: false, down: false, action: false },
             p2: { left: false, right: false, up: false, down: false, action: false }
         };
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
-        }
 
         function selectRole(role) {
             const roomInput = document.getElementById('room-id').value.trim().toUpperCase();
@@ -418,110 +405,69 @@
 
             document.getElementById('menu-screen').style.display = 'none';
 
+            // Subscribe channel room
+            pubnub.subscribe({ channels: ['mario_room_' + currentRoom] });
+
             if(role === 'display') {
+                isDisplay = true;
                 document.getElementById('display-screen').style.display = 'flex';
                 document.getElementById('hud-room').innerText = currentRoom;
-                toggleFullScreen();
-                initHostPeer();
                 initDisplayGame();
             } else {
                 document.body.classList.add('mobile-mode');
                 document.getElementById('slot-screen').style.display = 'flex';
                 document.getElementById('slot-room-display').innerText = currentRoom;
             }
-        }
 
-        // --- HOST / LAPTOP PEERJS LOGIC ---
-        function initHostPeer() {
-            // Laptop mendaftarkan ID Peer dengan nama Room
-            peer = new Peer('MARIO_ROOM_' + currentRoom);
+            // Dengar Pesan Sinkronisasi
+            pubnub.addListener({
+                message: function(event) {
+                    const msg = event.message;
 
-            peer.on('open', (id) => {
-                console.log('Room Laptop Aktif ID:', id);
-            });
-
-            peer.on('connection', (conn) => {
-                conn.on('data', (data) => {
-                    if(data.type === 'JOIN_REQUEST') {
-                        const targetSlot = data.slot;
-                        if(hostConnections[targetSlot] === null) {
-                            // Slot Masih Kosong
-                            hostConnections[targetSlot] = conn;
-                            conn.send({ type: 'JOIN_RESPONSE', success: true, slot: targetSlot });
-                            updateHUD(targetSlot, true);
-
-                            conn.on('close', () => {
-                                hostConnections[targetSlot] = null;
-                                updateHUD(targetSlot, false);
-                            });
-                        } else {
-                            // Slot Terisi
-                            conn.send({ type: 'JOIN_RESPONSE', success: false, message: 'Slot Stick Sudah Terisi!' });
-                        }
-                    } else if(data.type === 'INPUT') {
-                        if(inputs[data.player]) {
-                            inputs[data.player][data.key] = data.pressed;
+                    // Jika pesan berupa Input Kontrol
+                    if(msg.type === 'INPUT' && isDisplay) {
+                        if(inputs[msg.player]) {
+                            inputs[msg.player][msg.key] = msg.pressed;
                         }
                     }
-                });
+
+                    // Status Klaim Slot
+                    if(msg.type === 'CLAIM_SLOT') {
+                        slotOccupied[msg.slot] = true;
+                        updateSlotUI();
+                        if(isDisplay) updateHUD(msg.slot, true);
+                    }
+                }
             });
         }
 
-        function updateHUD(slot, connected) {
-            const el = document.getElementById(`${slot}-status`);
-            if(connected) {
-                el.innerText = `${slot.toUpperCase()}: CONNECTED (HP)`;
-                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.8)" : "rgba(22, 163, 74, 0.8)";
-                el.style.color = "#fff";
-            } else {
-                el.innerText = `${slot.toUpperCase()}: DISCONNECTED`;
-                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.2)" : "rgba(22, 163, 74, 0.2)";
-                el.style.color = slot === 'p1' ? "#ef4444" : "#22c55e";
+        function updateSlotUI() {
+            if(slotOccupied.p1) {
+                document.getElementById('btn-slot-p1').disabled = true;
+                document.getElementById('badge-p1').innerText = "TERISI";
+            }
+            if(slotOccupied.p2) {
+                document.getElementById('btn-slot-p2').disabled = true;
+                document.getElementById('badge-p2').innerText = "TERISI";
             }
         }
 
-        // --- CLIENT / HP PEERJS LOGIC ---
         function claimSlot(playerSlot) {
-            toggleFullScreen();
-            document.getElementById('slot-error').innerText = "Menghubungkan ke Laptop...";
+            if(slotOccupied[playerSlot]) {
+                document.getElementById('slot-error').innerText = `Stick ${playerSlot.toUpperCase()} sudah terisi!`;
+                return;
+            }
 
-            peer = new Peer(); // Client ID otomatis
-
-            peer.on('open', () => {
-                // Hubungkan HP ke Room Laptop
-                const hostId = 'MARIO_ROOM_' + currentRoom;
-                connToHost = peer.connect(hostId);
-
-                connToHost.on('open', () => {
-                    // Minta Masuk ke Slot Stick
-                    connToHost.send({ type: 'JOIN_REQUEST', slot: playerSlot });
-                });
-
-                connToHost.on('data', (data) => {
-                    if(data.type === 'JOIN_RESPONSE') {
-                        if(data.success) {
-                            startController(playerSlot);
-                        } else {
-                            document.getElementById('slot-error').innerText = data.message || "Gagal Terhubung!";
-                            // Nonaktifkan tombol yang terisi
-                            document.getElementById(`btn-slot-${playerSlot}`).disabled = true;
-                            document.getElementById(`badge-${playerSlot}`).innerText = "TERISI";
-                        }
-                    }
-                });
-
-                connToHost.on('error', () => {
-                    document.getElementById('slot-error').innerText = "Laptop belum membuka Mode Display!";
-                });
+            assignedPlayer = playerSlot;
+            pubnub.publish({
+                channel: 'mario_room_' + currentRoom,
+                message: { type: 'CLAIM_SLOT', slot: playerSlot }
             });
 
-            peer.on('error', (err) => {
-                document.getElementById('slot-error').innerText = "Pastikan Kode Room sesuai dengan Laptop!";
-            });
+            startController(playerSlot);
         }
 
         function startController(playerSlot) {
-            assignedPlayer = playerSlot;
             document.getElementById('slot-screen').style.display = 'none';
             document.getElementById('controller-screen').style.display = 'block';
             
@@ -533,12 +479,15 @@
         }
 
         function sendInputState(key, isPressed) {
-            if(!connToHost) return;
-            connToHost.send({
-                type: 'INPUT',
-                player: assignedPlayer,
-                key: key,
-                pressed: isPressed
+            if(!assignedPlayer) return;
+            pubnub.publish({
+                channel: 'mario_room_' + currentRoom,
+                message: {
+                    type: 'INPUT',
+                    player: assignedPlayer,
+                    key: key,
+                    pressed: isPressed
+                }
             });
         }
 
@@ -564,8 +513,6 @@
 
                 btn.addEventListener('touchstart', press, {passive: false});
                 btn.addEventListener('touchend', release, {passive: false});
-                btn.addEventListener('pointerdown', press);
-                btn.addEventListener('pointerup', release);
                 btn.addEventListener('mousedown', press);
                 btn.addEventListener('mouseup', release);
             });
@@ -578,12 +525,20 @@
             if (key === 'square' || key === 'circle') sendInputState('action', isPressed);
         }
 
+        function updateHUD(slot, connected) {
+            const el = document.getElementById(`${slot}-status`);
+            if(connected) {
+                el.innerText = `${slot.toUpperCase()}: CONNECTED (HP)`;
+                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.8)" : "rgba(22, 163, 74, 0.8)";
+                el.style.color = "#fff";
+            }
+        }
+
         // --- DISPLAY GAME (LAPTOP) ---
         function initDisplayGame() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
 
-            // Keyboard Control Fallback
             window.addEventListener('keydown', e => {
                 if(e.code === 'KeyA') inputs.p1.left = true;
                 if(e.code === 'KeyD') inputs.p1.right = true;
@@ -604,7 +559,6 @@
                 if(e.code === 'ArrowUp') inputs.p2.up = false;
             });
 
-            // Engine Physics
             const gravity = 0.5;
 
             class Player {
