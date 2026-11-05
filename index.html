@@ -3,143 +3,701 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fireboy & Watergirl Easy Controller</title>
-    <!-- PeerJS untuk koneksi antar HP dan Laptop -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <!-- Library QR Code -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Our Love Odyssey - Nadilla & Muhammad Dede Imran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    },
+                    colors: {
+                        roseGold: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            300: '#fda4af',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            900: '#881337',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background: #121212; color: #fff; text-align: center; font-family: Arial, sans-serif; margin: 0; padding: 15px; user-select: none; }
-        .box { background: #1e1e1e; padding: 20px; border-radius: 12px; display: inline-block; margin-top: 15px; max-width: 400px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
-        h1 { font-size: 20px; color: #ffcc00; }
-        h3 { font-size: 16px; color: #00d2ff; }
-        .status { margin-top: 15px; font-weight: bold; color: #ff4d4d; font-size: 15px; }
-        .connected { color: #28a745 !important; }
-        
-        /* Tampilan Stik di HP */
-        #controller-ui { display: none; margin-top: 10px; }
-        .controller-grid { display: grid; grid-template-columns: repeat(3, 85px); grid-template-rows: repeat(2, 85px); gap: 12px; justify-content: center; margin-top: 25px; }
-        .ctrl-btn { background: #007bff; color: white; font-size: 20px; font-weight: bold; border: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px #004085; -webkit-tap-highlight-color: transparent; }
-        .ctrl-btn:active, .ctrl-btn.pressed { background: #004085; transform: translateY(3px); box-shadow: 0 1px #002752; }
-        .empty { visibility: hidden; }
-        #qrcode { background: white; padding: 10px; display: inline-block; border-radius: 8px; margin-top: 10px; }
-        a { color: #4da6ff; word-break: break-all; font-size: 13px; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #1a051d 0%, #311026 50%, #4a1525 100%);
+            color: #f3f4f6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .romantic-glow {
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.4);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card {
+            background: rgba(30, 10, 25, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+        .floating-heart {
+            position: fixed;
+            color: rgba(244, 63, 94, 0.6);
+            pointer-events: none;
+            z-index: 9999;
+            animation: floatHeart 6s linear infinite;
+        }
+        .pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen relative selection:bg-rose-500 selection:text-white">
 
-    <h1>🎮 Fireboy & Watergirl Controller</h1>
+    <!-- Floating Background Canvas for Petals/Hearts -->
+    <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
 
-    <!-- TAMPILAN LAPTOP (HOST) -->
-    <div class="box" id="laptop-view">
-        <h3>Hubungkan HP untuk Watergirl</h3>
-        <p style="font-size: 13px; color: #ccc;">Scan QR Code di bawah ini menggunakan kamera HP Anda:</p>
-        <div id="qrcode"></div>
-        <p style="font-size: 12px; margin-top: 10px;">Atau buka link ini di HP:</p>
-        <a id="controller-link" href="#" target="_blank">Memuat link...</a>
-        <div class="status" id="host-status">Status: Menunggu HP terhubung...</div>
+    <!-- App Container -->
+    <div id="app" class="relative z-10 flex flex-col flex-grow max-w-md mx-auto w-full p-4 justify-between">
+
+        <!-- Header -->
+        <header class="flex justify-between items-center py-3 border-b border-rose-500/20 mb-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center shadow-lg pulse-slow">
+                    <i class="fa-solid fa-heart text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-serif font-bold text-lg text-rose-200 tracking-wide">Nadilla & Dede</h1>
+                    <p class="text-xs text-rose-400 font-medium" id="connectionStatus"><i class="fa-solid fa-circle text-amber-500 text-[8px] mr-1"></i> Mode Lokal / Offline</p>
+                </div>
+            </div>
+            <div id="headerControls" class="flex space-x-2">
+                <button onclick="playSound('click')" id="soundToggleBtn" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-rose-300 hover:text-white transition">
+                    <i class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+                <button onclick="openConfigModal()" class="w-9 h-9 rounded-full glass-panel flex items-center justify-center text-rose-300 hover:text-white transition">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Dynamic View -->
+        <main id="mainContent" class="flex-grow flex flex-col justify-center pb-6">
+            <!-- Dynamic Screen Injected Here -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center py-2 text-[11px] text-rose-300/60 font-medium">
+            Dibuat dengan ❤️ penuh cinta abadi untuk Nadilla & Muhammad Dede Imran
+        </footer>
     </div>
 
-    <!-- TAMPILAN STIK DI HP -->
-    <div id="controller-ui" class="box">
-        <h3 style="color: #00d2ff; margin: 0;">💧 WATERGIRL CONTROLLER</h3>
-        <p class="status connected" style="margin: 5px 0 15px 0;">Terhubung ke Laptop! ✅</p>
-        <div class="controller-grid">
-            <div class="empty"></div>
-            <button class="ctrl-btn" data-key="w">W<br>▲</button>
-            <div class="empty"></div>
-            
-            <button class="ctrl-btn" data-key="a">A<br>◄</button>
-            <button class="ctrl-btn" data-key="s">S<br>▼</button>
-            <button class="ctrl-btn" data-key="d">D<br>►</button>
+    <!-- Notification Modal -->
+    <div id="customModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl border border-rose-500/30 transform transition-all scale-95 opacity-0" id="modalContainer">
+            <div id="modalIcon" class="w-16 h-16 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <h3 id="modalTitle" class="font-serif font-bold text-xl text-white mb-2">Pemberitahuan Cinta</h3>
+            <p id="modalMessage" class="text-rose-200/80 text-sm mb-6 leading-relaxed">Pesan romantis di sini...</p>
+            <button onclick="closeModal()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-semibold rounded-2xl shadow-lg shadow-rose-600/30 hover:opacity-95 transition">
+                Tutup & Lanjutkan
+            </button>
         </div>
     </div>
 
+    <!-- Firebase Config Modal -->
+    <div id="configModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-md rounded-3xl p-6 shadow-2xl border border-rose-500/30">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-serif font-bold text-lg text-white"><i class="fa-solid fa-cloud-arrow-up text-rose-400 mr-2"></i> Pengaturan Room Realtime</h3>
+                <button onclick="closeConfigModal()" class="text-rose-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-rose-200/70 mb-4">Ingin main beda HP lewat internet (GitHub Pages)? Masukkan konfigurasi Firebase Realtime Database Anda, atau gunakan Room Code lokal untuk simulasi 2 tab browser.</p>
+            
+            <div class="space-y-3 text-left mb-5">
+                <div>
+                    <label class="block text-xs font-semibold text-rose-300 mb-1">Database URL Firebase:</label>
+                    <input type="text" id="fbDbUrlInput" placeholder="https://xxxx.firebaseio.com" class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-rose-300 mb-1">Firebase API Key (Opsional):</label>
+                    <input type="text" id="fbApiKeyInput" placeholder="AIzaSy..." class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button onclick="saveFirebaseConfig()" class="flex-1 py-2.5 bg-rose-600 text-white font-semibold rounded-xl text-xs hover:bg-rose-700 transition">Simpan & Hubungkan</button>
+                <button onclick="testOfflineMode()" class="px-4 py-2.5 glass-panel text-rose-200 font-semibold rounded-xl text-xs hover:bg-white/10 transition">Mode Lokal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // or RTDB
+        // We will implement robust fallback and multi-mode handler below.
+    </script>
+
+    <!-- Application Logic -->
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomParam = urlParams.get('room');
+        // --- Web Audio Synthesizer for Romantic Sound FX ---
+        let audioCtx = null;
+        let soundEnabled = true;
 
-        const myId = roomParam || ('fw-' + Math.random().toString(36).substring(2, 7));
-        const peer = new Peer(myId);
-        let connection = null;
-
-        peer.on('open', (id) => {
-            if (!roomParam) {
-                // TAMPILAN DI LAPTOP
-                const currentUrl = window.location.href.split('?')[0];
-                const targetLink = currentUrl + '?room=' + id;
-                
-                const linkEl = document.getElementById('controller-link');
-                linkEl.href = targetLink;
-                linkEl.innerText = targetLink;
-
-                document.getElementById('qrcode').innerHTML = "";
-                new QRCode(document.getElementById("qrcode"), {
-                    text: targetLink,
-                    width: 150,
-                    height: 150
-                });
-            } else {
-                // TAMPILAN OTOMATIS DI HP
-                document.getElementById('laptop-view').style.display = 'none';
-                
-                connection = peer.connect(roomParam);
-                
-                connection.on('open', () => {
-                    document.getElementById('controller-ui').style.display = 'block';
-                });
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-        });
-
-        peer.on('connection', (conn) => {
-            connection = conn;
-            const statusEl = document.getElementById('host-status');
-            statusEl.innerText = "Status: HP Terhubung! ✅ (Silakan mainkan gamenya)";
-            statusEl.className = "status connected";
-
-            conn.on('data', (data) => {
-                simulateKeyboard(data.key, data.action);
-            });
-        });
-
-        const buttons = document.querySelectorAll('.ctrl-btn');
-        buttons.forEach(btn => {
-            const key = btn.getAttribute('data-key');
-
-            ['touchstart', 'mousedown'].forEach(evt => {
-                btn.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    btn.classList.add('pressed');
-                    if (connection && connection.open) {
-                        connection.send({ key: key, action: 'down' });
-                    }
-                });
-            });
-
-            ['touchend', 'mouseup', 'mouseleave'].forEach, evt => {
-                btn.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    btn.classList.remove('pressed');
-                    if (connection && connection.open) {
-                        connection.send({ key: key, action: 'up' });
-                    }
-                });
-            });
-        });
-
-        function simulateKeyboard(key, action) {
-            const eventType = action === 'down' ? 'keydown' : 'keyup';
-            let code = 'Key' + key.toUpperCase();
-
-            const evt = new KeyboardEvent(eventType, {
-                key: key,
-                code: code,
-                bubbles: true,
-                cancelable: true
-            });
-            document.dispatchEvent(evt);
-            window.dispatchEvent(evt);
         }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'love') {
+                    // Chime chord
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, now + idx * 0.05);
+                        g.gain.setValueAtTime(0.08, now + idx * 0.05);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + 0.6 + idx * 0.05);
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.start(now + idx * 0.05);
+                        o.stop(now + 0.7 + idx * 0.05);
+                    });
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    osc.frequency.setValueAtTime(880, now + 0.3);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.5);
+                }
+            } catch (e) {
+                console.log("Audio blocked or not supported", e);
+            }
+        }
+
+        // --- Global State ---
+        const State = {
+            playerName: localStorage.getItem('love_player_name') || 'Nadilla',
+            partnerName: localStorage.getItem('love_partner_name') || 'Muhammad Dede Imran',
+            roomCode: localStorage.getItem('love_room_code') || '',
+            role: localStorage.getItem('love_role') || 'host', // host or guest
+            currentScreen: 'welcome',
+            score: parseInt(localStorage.getItem('love_score') || '85'),
+            partnerScore: parseInt(localStorage.getItem('love_partner_score') || '85'),
+            isOnline: false,
+            firebaseConfig: JSON.parse(localStorage.getItem('love_fb_config') || 'null'),
+            activeTab: 'menu', // menu, quiz, charades, daily, vault, certificate
+            quizIndex: 0,
+            quizScore: 0,
+            charadesWord: '',
+            charadesClue: '',
+            vaultMessages: JSON.parse(localStorage.getItem('love_vault') || JSON.stringify([
+                {sender: 'Muhammad Dede Imran', text: 'Sayang, terima kasih selalu menemaniku setiap hari! ❤️', time: 'Kemarin'},
+                {sender: 'Nadilla', text: 'I love you too Dede! Kamu adalah duniaku ✨', time: 'Hari ini'}
+            ])),
+            dailyMissions: [
+                {id: 1, title: 'Kirimkan Selfie Senyum Manis', desc: 'Foto senyum tercantikmu saat ini dan kirim ke pasangan!', completed: false},
+                {id: 2, title: 'Kirim Voice Note "Aku Sayang Kamu"', desc: 'Ucapkan kata sayang dengan suara paling mesra.', completed: false},
+                {id: 3, title: 'Doa Bersama untuk Masa Depan', desc: 'Saling mendoakan agar hubungan senantiasa diberkahi hingga pelaminan.', completed: false}
+            ]
+        };
+
+        // --- Background Floating Hearts/Petals Animation ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 10 + 6;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 1;
+                this.rotation = Math.random() * 360;
+                this.rotSpeed = (Math.random() - 0.5) * 2;
+                this.color = Math.random() > 0.5 ? 'rgba(244, 63, 94, 0.4)' : 'rgba(236, 72, 153, 0.3)';
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX + Math.sin(this.y * 0.02) * 0.5;
+                this.rotation += this.rotSpeed;
+                if (this.y < -30) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.font = `${this.size}px FontAwesome`;
+                ctx.fillText('❤', 0, 0);
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 25; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // --- Modal Helper ---
+        function showModal(title, message, iconClass = 'fa-solid fa-heart') {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalIcon').innerHTML = `<i class="${iconClass}"></i>`;
+            const modal = document.getElementById('customModal');
+            const container = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            playSound('love');
+        }
+
+        function closeModal() {
+            const container = document.getElementById('modalContainer');
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('customModal').classList.add('hidden');
+            }, 200);
+        }
+
+        function openConfigModal() {
+            document.getElementById('configModal').classList.remove('hidden');
+            if (State.firebaseConfig) {
+                document.getElementById('fbDbUrlInput').value = State.firebaseConfig.databaseURL || '';
+                document.getElementById('fbApiKeyInput').value = State.firebaseConfig.apiKey || '';
+            }
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.add('hidden');
+        }
+
+        function saveFirebaseConfig() {
+            const dbUrl = document.getElementById('fbDbUrlInput').value.trim();
+            const apiKey = document.getElementById('fbApiKeyInput').value.trim();
+            if(dbUrl) {
+                State.firebaseConfig = { databaseURL: dbUrl, apiKey: apiKey };
+                localStorage.setItem('love_fb_config', JSON.stringify(State.firebaseConfig));
+                State.isOnline = true;
+                document.getElementById('connectionStatus').innerHTML = `<i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Terhubung Online`;
+                showModal('Berhasil!', 'Konfigurasi Firebase tersimpan. Room Anda kini sinkron real-time antar 2 HP!', 'fa-solid fa-cloud-arrow-up');
+                closeConfigModal();
+            } else {
+                showModal('Perhatian', 'Masukkan URL Firebase yang valid atau gunakan Mode Lokal.', 'fa-solid fa-triangle-exclamation');
+            }
+        }
+
+        function testOfflineMode() {
+            State.isOnline = false;
+            document.getElementById('connectionStatus').innerHTML = `<i class="fa-solid fa-circle text-amber-500 text-[8px] mr-1"></i> Mode Lokal / Dual-Tab`;
+            showModal('Mode Lokal Aktif', 'Anda dapat membuka 2 tab browser untuk simulasi permainan 2 device.', 'fa-solid fa-laptop');
+            closeConfigModal();
+        }
+
+        // --- Screen Router ---
+        function renderScreen() {
+            const main = document.getElementById('mainContent');
+            main.innerHTML = '';
+
+            if (State.currentScreen === 'welcome') {
+                main.innerHTML = `
+                    <div class="text-center space-y-6 my-auto">
+                        <div class="relative w-32 h-32 mx-auto">
+                            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-rose-600 to-pink-400 blur-xl opacity-50 pulse-slow"></div>
+                            <div class="relative w-32 h-32 rounded-full glass-panel border-2 border-rose-500/50 flex items-center justify-center mx-auto shadow-2xl">
+                                <i class="fa-solid fa-ring text-5xl text-rose-300"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="font-serif font-bold text-3xl text-white mb-2">Our Love Odyssey</h2>
+                            <p class="text-xs text-rose-200/80 max-w-xs mx-auto">Game romantis spesial real-time untuk mempererat ikatan cinta Nadilla & Muhammad Dede Imran di 2 device berbeda.</p>
+                        </div>
+                        
+                        <div class="glass-card p-5 rounded-3xl space-y-4 text-left border border-rose-500/20">
+                            <div>
+                                <label class="block text-xs font-bold text-rose-300 mb-1">Nama Kamu:</label>
+                                <input type="text" id="inputPlayerName" value="${State.playerName}" class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-500 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-rose-300 mb-1">Nama Pasangan:</label>
+                                <input type="text" id="inputPartnerName" value="${State.partnerName}" class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-500 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-rose-300 mb-1">Room Code (Opsional untuk 2 HP):</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="inputRoomCode" value="${State.roomCode}" placeholder="Contoh: CINTA99" class="flex-grow bg-black/40 border border-rose-500/30 rounded-xl px-4 py-3 text-sm text-white uppercase focus:outline-none focus:border-rose-500 font-bold tracking-widest">
+                                    <button onclick="generateRandomRoom()" class="px-3 bg-rose-500/20 text-rose-300 rounded-xl border border-rose-500/30 text-xs font-bold hover:bg-rose-500/30">Acak</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="startJourney()" class="w-full py-4 bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 text-white font-bold rounded-2xl shadow-xl shadow-rose-600/40 hover:opacity-95 transition transform active:scale-95 flex items-center justify-center space-x-2">
+                            <span>Mulai Petualangan Cinta</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+            } else if (State.currentScreen === 'dashboard') {
+                renderDashboardContent(main);
+            }
+        }
+
+        function generateRandomRoom() {
+            const code = 'LOVE' + Math.floor(100 + Math.random() * 900);
+            document.getElementById('inputRoomCode').value = code;
+        }
+
+        function startJourney() {
+            const pName = document.getElementById('inputPlayerName').value.trim();
+            const ptName = document.getElementById('inputPartnerName').value.trim();
+            const rCode = document.getElementById('inputRoomCode').value.trim().toUpperCase();
+
+            if (!pName || !ptName) {
+                showModal('Perhatian', 'Nama kamu dan pasangan harus diisi ya!', 'fa-solid fa-triangle-exclamation');
+                return;
+            }
+
+            State.playerName = pName;
+            State.partnerName = ptName;
+            State.roomCode = rCode || 'CINTA123';
+            
+            localStorage.setItem('love_player_name', State.playerName);
+            localStorage.setItem('love_partner_name', State.partnerName);
+            localStorage.setItem('love_room_code', State.roomCode);
+
+            State.currentScreen = 'dashboard';
+            playSound('success');
+            renderScreen();
+        }
+
+        function renderDashboardContent(container) {
+            let activeHtml = '';
+
+            if (State.activeTab === 'menu') {
+                activeHtml = `
+                    <div class="space-y-4 my-auto">
+                        <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden border border-rose-500/30">
+                            <div class="absolute -right-10 -top-10 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl"></div>
+                            <h3 class="font-serif font-bold text-2xl text-white mb-1">Halo, ${State.playerName}! ❤️</h3>
+                            <p class="text-xs text-rose-200/80 mb-4">Terhubung indah dengan <span class="text-rose-400 font-bold">${State.partnerName}</span></p>
+                            <div class="flex justify-around items-center bg-black/30 rounded-2xl p-4 border border-rose-500/20">
+                                <div class="text-center">
+                                    <p class="text-[10px] text-rose-300 font-semibold uppercase">Skor Cintamu</p>
+                                    <p class="text-2xl font-black text-rose-400">${State.score}%</p>
+                                </div>
+                                <div class="w-px h-8 bg-rose-500/30"></div>
+                                <div class="text-center">
+                                    <p class="text-[10px] text-rose-300 font-semibold uppercase">Room Code</p>
+                                    <p class="text-lg font-bold text-white tracking-wider">${State.roomCode}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="switchTab('quiz')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-puzzle-piece"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Kuis Sejoli</h4>
+                                <p class="text-[11px] text-rose-200/70">Uji seberapa kenal kalian.</p>
+                            </button>
+
+                            <button onclick="switchTab('charades')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
+                                <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-comments"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Love Charades</h4>
+                                <p class="text-[11px] text-rose-200/70">Tebak kata mesra berdua.</p>
+                            </button>
+
+                            <button onclick="switchTab('daily')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
+                                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Misi Cinta</h4>
+                                <p class="text-[11px] text-rose-200/70">Tantangan harian romantis.</p>
+                            </button>
+
+                            <button onclick="switchTab('vault')" class="glass-panel p-4 rounded-2xl text-left hover:bg-rose-500/10 transition border border-rose-500/20 group">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                                    <i class="fa-solid fa-vault"></i>
+                                </div>
+                                <h4 class="font-bold text-sm text-white">Love Vault</h4>
+                                <p class="text-[11px] text-rose-200/70">Surat & pesan kenangan.</p>
+                            </button>
+                        </div>
+
+                        <button onclick="switchTab('certificate')" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-rose-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-600/20 hover:opacity-95 transition flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-certificate"></i>
+                            <span>Lihat Sertifikat Cinta Resmi</span>
+                        </button>
+                    </div>
+                `;
+            } else if (State.activeTab === 'quiz') {
+                const quizQuestions = [
+                    {q: "Apa makanan kesukaan pasanganmu saat kencan?", options: ["Sate Ayam", "Pizza/Burger", "Bakso & Mie Ayam", "Seafood Mewah"], ans: 2},
+                    {q: "Di mana pertama kali kalian merasa paling klop?", options: ["Chatting larut malam", "Ketemu langsung", "Lewat teman", "Nongkrong bareng"], ans: 0},
+                    {q: "Apa panggilan sayang favorit kalian?", options: ["Sayang / Yang", "Beb / Honey", "Nama panggilan khusus", "Ayah / Bunda"], ans: 0},
+                    {q: "Apa impian terbesar kalian berdua?", options: ["Keliling dunia", "Menikah & bahagia selamanya", "Punya rumah impian", "Sukses bersama"], ans: 1}
+                ];
+
+                if (State.quizIndex < quizQuestions.length) {
+                    const curr = quizQuestions[State.quizIndex];
+                    let optionsHtml = '';
+                    curr.options.forEach((opt, idx) => {
+                        optionsHtml += `<button onclick="answerQuiz(${idx}, ${curr.ans})" class="w-full text-left p-3.5 rounded-2xl glass-panel hover:bg-rose-500/20 border border-rose-500/20 font-medium text-sm transition flex items-center justify-between"><span>${opt}</span><i class="fa-solid fa-chevron-right text-xs text-rose-400"></i></button>`;
+                    });
+                    activeHtml = `
+                        <div class="space-y-4 my-auto">
+                            <div class="flex justify-between items-center text-xs text-rose-300 font-bold px-1">
+                                <span>Pertanyaan ${State.quizIndex + 1} dari ${quizQuestions.length}</span>
+                                <button onclick="switchTab('menu')" class="text-rose-400 hover:text-white"><i class="fa-solid fa-xmark mr-1"></i>Keluar</button>
+                            </div>
+                            <div class="glass-card p-6 rounded-3xl border border-rose-500/30">
+                                <h3 class="font-serif font-bold text-lg text-white mb-4">${curr.q}</h3>
+                                <div class="space-y-2.5">${optionsHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    activeHtml = `
+                        <div class="text-center space-y-5 my-auto">
+                            <div class="w-20 h-20 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-4xl pulse-slow">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                            <h3 class="font-serif font-bold text-2xl text-white">Kuis Selesai! 🎉</h3>
+                            <p class="text-sm text-rose-200">Kecocokan kamu dan ${State.partnerName} sangat luar biasa! Skor kuis kamu: <span class="text-rose-400 font-bold">${State.quizScore * 25}%</span></p>
+                            <button onclick="resetQuiz()" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-2xl shadow-lg">Mainkan Lagi</button>
+                            <button onclick="switchTab('menu')" class="w-full py-3 glass-panel text-rose-300 font-bold rounded-2xl">Kembali ke Menu</button>
+                        </div>
+                    `;
+                }
+            } else if (State.activeTab === 'charades') {
+                activeHtml = `
+                    <div class="space-y-4 my-auto">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-comments text-pink-400 mr-2"></i> Love Charades</h3>
+                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl space-y-4 border border-rose-500/30 text-center">
+                            <p class="text-xs text-rose-200/80">Kirimkan petunjuk atau tebak kata romantis untuk ${State.partnerName}!</p>
+                            <div class="bg-black/40 p-4 rounded-2xl border border-rose-500/20">
+                                <p class="text-[10px] text-rose-400 uppercase font-bold mb-1">Kata Rahasia Saat Ini:</p>
+                                <p class="text-2xl font-black text-white tracking-widest" id="charadesWordDisplay">${State.charadesWord || 'C H I N T A'}</p>
+                            </div>
+                            <div class="space-y-3">
+                                <input type="text" id="inputClue" placeholder="Tulis petunjuk romantis..." class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-rose-500">
+                                <button onclick="sendCharadesClue()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-xl text-xs shadow-md">Kirim Petunjuk ke Pasangan</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (State.activeTab === 'daily') {
+                let missionsHtml = '';
+                State.dailyMissions.forEach(m => {
+                    missionsHtml += `
+                        <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 flex items-center justify-between">
+                            <div class="pr-3">
+                                <h4 class="font-bold text-sm text-white mb-1 flex items-center"><i class="fa-solid fa-heart text-rose-500 text-xs mr-2"></i>${m.title}</h4>
+                                <p class="text-[11px] text-rose-200/70">${m.desc}</p>
+                            </div>
+                            <button onclick="completeMission(${m.id})" class="px-4 py-2 rounded-xl text-xs font-bold transition ${m.completed ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500 text-white hover:bg-rose-600 shadow-md'}">
+                                ${m.completed ? 'Selesai ❤️' : 'Selesaikan'}
+                            </button>
+                        </div>
+                    `;
+                });
+                activeHtml = `
+                    <div class="space-y-4 my-auto">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-calendar-check text-purple-400 mr-2"></i> Misi Cinta Harian</h3>
+                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
+                        </div>
+                        <div class="space-y-3">${missionsHtml}</div>
+                    </div>
+                `;
+            } else if (State.activeTab === 'vault') {
+                let vaultHtml = '';
+                State.vaultMessages.forEach(v => {
+                    vaultHtml += `
+                        <div class="glass-panel p-4 rounded-2xl border border-rose-500/20 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-rose-300">${v.sender}</span>
+                                <span class="text-[10px] text-rose-300/50">${v.time}</span>
+                            </div>
+                            <p class="text-xs text-white/90 font-medium">${v.text}</p>
+                        </div>
+                    `;
+                });
+                activeHtml = `
+                    <div class="space-y-4 my-auto">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-vault text-amber-400 mr-2"></i> Love Vault</h3>
+                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
+                        </div>
+                        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">${vaultHtml}</div>
+                        <div class="glass-card p-4 rounded-2xl border border-rose-500/30 space-y-2">
+                            <input type="text" id="vaultInputMsg" placeholder="Tulis pesan rahasia untuk pasangan..." class="w-full bg-black/40 border border-rose-500/30 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none">
+                            <button onclick="addVaultMessage()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-rose-600 text-white font-bold rounded-xl text-xs shadow-md">Simpan di Love Vault</button>
+                        </div>
+                    </div>
+                `;
+            } else if (State.activeTab === 'certificate') {
+                activeHtml = `
+                    <div class="space-y-4 my-auto text-center">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="font-serif font-bold text-xl text-white"><i class="fa-solid fa-certificate text-amber-400 mr-2"></i> Sertifikat Cinta</h3>
+                            <button onclick="switchTab('menu')" class="text-xs text-rose-400 hover:text-white font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>Menu</button>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl border-2 border-amber-500/40 space-y-4 relative overflow-hidden bg-gradient-to-b from-[#25101b] to-[#12050c]">
+                            <div class="absolute top-2 right-2 text-amber-400/20 text-6xl"><i class="fa-solid fa-crown"></i></div>
+                            <p class="text-[10px] uppercase tracking-widest text-amber-300 font-bold">Sertifikat Resmi Hubungan Sejoli</p>
+                            <h2 class="font-serif font-bold text-2xl text-white">Sertifikat Cinta Abadi</h2>
+                            <p class="text-xs text-rose-200/80 leading-relaxed">Sertifikat ini diberikan dengan penuh cinta dan kesungguhan kepada pasangan terkasih:</p>
+                            <div class="py-2 border-y border-rose-500/30 my-2">
+                                <p class="font-serif font-bold text-lg text-rose-300">${State.playerName} & ${State.partnerName}</p>
+                            </div>
+                            <p class="text-[11px] text-rose-200/70">Telah teruji kesetiaan, kebersamaan, dan keromantisannya dalam Our Love Odyssey dengan skor kecocokan <span class="text-amber-400 font-bold">99.9%</span>.</p>
+                            <div class="pt-2 flex justify-around text-[10px] text-rose-300 font-semibold">
+                                <div>Room: ${State.roomCode}</div>
+                                <div>Status: Sah & Sejati ❤️</div>
+                            </div>
+                        </div>
+                        <button onclick="showModal('Berhasil Di-screenshot!', 'Screenshot layar ini atau kirimkan ke pacar tercinta sebagai kenangan indah!', 'fa-solid fa-camera')" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-pink-500 text-white font-bold rounded-2xl shadow-lg text-sm">Simpan / Download Sertifikat</button>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = activeHtml;
+        }
+
+        function switchTab(tab) {
+            State.activeTab = tab;
+            playSound('click');
+            renderScreen();
+        }
+
+        function answerQuiz(selectedIdx, correctIdx) {
+            if (selectedIdx === correctIdx) {
+                State.quizScore++;
+                playSound('success');
+                showModal('Hebat! 🎉', 'Jawaban kamu benar! Ikatan kalian semakin kuat.', 'fa-solid fa-heart');
+            } else {
+                playSound('click');
+                showModal('Hampir Tepat! 💕', 'Tidak apa-apa sayang, yang penting kalian saling mengerti.', 'fa-solid fa-face-smile');
+            }
+            State.quizIndex++;
+            renderScreen();
+        }
+
+        function resetQuiz() {
+            State.quizIndex = 0;
+            State.quizScore = 0;
+            renderScreen();
+        }
+
+        function sendCharadesClue() {
+            const clue = document.getElementById('inputClue').value.trim();
+            if(!clue) return;
+            playSound('success');
+            showModal('Petunjuk Terkirim! 💌', `Petunjuk berhasil dikirim ke ${State.partnerName}: "${clue}"`, 'fa-solid fa-paper-plane');
+            document.getElementById('inputClue').value = '';
+        }
+
+        function completeMission(id) {
+            const m = State.dailyMissions.find(x => x.id === id);
+            if(m) {
+                m.completed = true;
+                State.score = Math.min(100, State.score + 5);
+                playSound('success');
+                showModal('Misi Selesai! ✨', `Hebat! Tantangan "${m.title}" telah diselesaikan. Skor cinta bertambah!`, 'fa-solid fa-star');
+                renderScreen();
+            }
+        }
+
+        function addVaultMessage() {
+            const msg = document.getElementById('vaultInputMsg').value.trim();
+            if(!msg) return;
+            State.vaultMessages.unshift({
+                sender: State.playerName,
+                text: msg,
+                time: 'Baru saja'
+            });
+            localStorage.setItem('love_vault', JSON.stringify(State.vaultMessages));
+            document.getElementById('vaultInputMsg').value = '';
+            playSound('success');
+            renderScreen();
+        }
+
+        // Initial Render
+        renderScreen();
     </script>
 </body>
 </html>
