@@ -1,1198 +1,362 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super Mario Multi-Device Co-Op</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;800&display=swap');
-    
-    .font-pixel {
-      font-family: 'Press Start 2P', cursive;
-    }
-    
-    .d-btn {
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    
-    .d-btn:active {
-      transform: scale(0.90);
-    }
-    
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #111827;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #374151;
-      border-radius: 4px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Mario Multi-Device Console</title>
+    <!-- Include PeerJS & QRCode Library -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        body { background-color: #0d1117; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        
+        /* MENU SELECTION */
+        #menu-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #161b22; padding: 30px; border-radius: 20px; border: 3px solid #f1c40f; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 90%; max-width: 450px; text-align: center; }
+        #menu-screen h1 { color: #f1c40f; font-size: 28px; margin-bottom: 5px; text-shadow: 2px 2px #c0392b; }
+        #menu-screen h2 { color: #e74c3c; font-size: 14px; margin-bottom: 25px; letter-spacing: 2px; }
+        .btn-mode { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; color: white; transition: all 0.2s ease; display: flex; justify-content: space-between; align-items: center; }
+        .btn-mode:active { transform: scale(0.98); }
+        .btn-display { background: linear-gradient(135deg, #2980b9, #3498db); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); }
+        .btn-p1 { background: linear-gradient(135deg, #c0392b, #e74c3c); box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+        .btn-p2 { background: linear-gradient(135deg, #27ae60, #2ecc71); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); }
+        .btn-mode:disabled { background: #555 !important; cursor: not-allowed; box-shadow: none; opacity: 0.6; }
+
+        /* LAPTOP DISPLAY */
+        #display-screen { display: none; flex-direction: column; align-items: center; width: 100vw; height: 100vh; background: #5c94fc; position: relative; }
+        #canvas-container { position: relative; margin-top: 10px; border: 4px solid #000; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        canvas { background: #5c94fc; display: block; }
+        #qr-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        #qr-box { background: white; padding: 20px; border-radius: 15px; display: flex; gap: 20px; text-align: center; color: #333; }
+        .qr-card { display: flex; flex-direction: column; align-items: center; }
+        
+        /* HP CONTROLLER */
+        #controller-screen { display: none; width: 100vw; height: 100vh; background: #222; position: relative; flex-direction: row; justify-content: space-between; align-items: center; padding: 20px 40px; }
+        .dpad { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 5px; }
+        .dbtn { background: #444; border: 2px solid #666; border-radius: 10px; color: white; font-size: 20px; display: flex; justify-content: center; align-items: center; touch-action: manipulation; }
+        .dbtn:active { background: #888; }
+        .dbtn-up { grid-column: 2; grid-row: 1; }
+        .dbtn-left { grid-column: 1; grid-row: 2; }
+        .dbtn-right { grid-column: 3; grid-row: 2; }
+        .dbtn-down { grid-column: 2; grid-row: 3; }
+
+        .action-buttons { display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 5px; }
+        .abtn { border-radius: 50%; color: white; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; border: 2px solid rgba(255,255,255,0.3); touch-action: manipulation; }
+        .abtn:active { filter: brightness(1.5); }
+        .abtn-triangle { grid-column: 2; grid-row: 1; background: #2ecc71; }
+        .abtn-square { grid-column: 1; grid-row: 2; background: #f1c40f; }
+        .abtn-circle { grid-column: 3; grid-row: 2; background: #e74c3c; }
+        .abtn-cross { grid-column: 2; grid-row: 3; background: #3498db; }
+
+        #status-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; font-size: 14px; }
+    </style>
 </head>
-<body class="bg-gray-950 text-white font-sans antialiased min-h-screen flex flex-col overflow-x-hidden select-none">
+<body>
 
-  <!-- MAIN CONTAINER -->
-  <div id="app" class="flex-1 flex flex-col items-center justify-center relative w-full h-full min-h-screen">
-    
-    <!-- LOADING OVERLAY -->
-    <div id="loadingOverlay" class="absolute inset-0 bg-gray-950 z-50 flex flex-col items-center justify-center p-4">
-      <div class="text-red-500 text-5xl mb-4 animate-bounce">
-        <i class="fa-solid fa-gamepad"></i>
-      </div>
-      <h1 class="font-pixel text-xl sm:text-2xl text-yellow-400 mb-2 text-center">SUPER MARIO CO-OP</h1>
-      <p class="text-gray-400 text-sm mb-4 font-mono">Menghubungkan Server Real-Time...</p>
-      <div class="w-48 h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
-        <div class="w-full h-full bg-red-600 animate-pulse"></div>
-      </div>
-    </div>
-
-    <!-- 1. LANDING / ROLE SELECTION SCREEN -->
-    <div id="roleSelectScreen" class="hidden flex-col items-center justify-center p-4 w-full max-w-xl text-center z-40">
-      <div class="bg-gray-900 border-4 border-yellow-500 rounded-2xl p-6 sm:p-8 shadow-2xl w-full">
-        <h1 class="font-pixel text-2xl sm:text-3xl text-yellow-400 mb-2 drop-shadow-md">SUPER MARIO</h1>
-        <p class="font-pixel text-xs text-red-500 mb-6 tracking-widest">REAL-TIME MULTI-DEVICE CONSOLE</p>
-        
-        <p class="text-gray-300 text-sm mb-6">Pilih mode untuk perangkat ini:</p>
-        
-        <div class="flex flex-col gap-4">
-          <!-- Laptop Display Button -->
-          <button id="btnSelectDisplay" onclick="selectRole('display')" class="group relative bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-blue-800 transition flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <i class="fa-solid fa-desktop text-2xl text-blue-200"></i>
-              <div class="text-left">
-                <div class="font-bold text-lg">Tombol Display (Laptop)</div>
-                <div class="text-xs text-blue-200">Layar Utam Game & Canvas Engine</div>
-              </div>
-            </div>
-            <i class="fa-solid fa-chevron-right opacity-60 group-hover:translate-x-1 transition"></i>
-          </button>
-
-          <!-- Controller P1 Button -->
-          <button id="btnSelectP1" onclick="selectRole('p1')" class="group relative bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-red-800 transition flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed">
-            <div class="flex items-center gap-3">
-              <i class="fa-solid fa-mobile-screen text-2xl text-red-200"></i>
-              <div class="text-left">
-                <div class="font-bold text-lg flex items-center gap-2">
-                  Ambil Stick 1 (Mario)
-                  <span id="badgeP1" class="text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full font-normal">Tersedia</span>
-                </div>
-                <div class="text-xs text-red-200">Smartphone Controller Red (P1)</div>
-              </div>
-            </div>
-            <i class="fa-solid fa-gamepad text-xl opacity-70"></i>
-          </button>
-
-          <!-- Controller P2 Button -->
-          <button id="btnSelectP2" onclick="selectRole('p2')" class="group relative bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg border-b-4 border-green-800 transition flex items-center justify-between disabled:opacity-40 disabled:cursor-not-allowed">
-            <div class="flex items-center gap-3">
-              <i class="fa-solid fa-mobile-screen text-2xl text-green-200"></i>
-              <div class="text-left">
-                <div class="font-bold text-lg flex items-center gap-2">
-                  Ambil Stick 2 (Luigi)
-                  <span id="badgeP2" class="text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded-full font-normal">Tersedia</span>
-                </div>
-                <div class="text-xs text-green-200">Smartphone Controller Green (P2)</div>
-              </div>
-            </div>
-            <i class="fa-solid fa-gamepad text-xl opacity-70"></i>
-          </button>
-        </div>
-
-        <div id="slotNotice" class="mt-4 text-xs text-yellow-400/90 hidden font-mono">
-          <i class="fa-solid fa-lock mr-1"></i> Slot controller terisi penuh! Orang lain tidak dapat memilih slot yang sedang digunakan.
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. LAPTOP / DISPLAY SCREEN -->
-    <div id="displayScreen" class="hidden flex-col items-center justify-between w-full h-full min-h-screen p-2 sm:p-4 bg-gray-950">
-      <!-- HUD Top Bar -->
-      <div class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2 bg-gray-900 border border-gray-800 p-3 rounded-xl shadow-md text-xs sm:text-sm font-pixel">
-        <div class="flex items-center gap-4">
-          <!-- P1 HUD -->
-          <div class="flex items-center gap-2 bg-red-950/80 border border-red-800/60 px-3 py-1.5 rounded-lg">
-            <span class="w-3 h-3 rounded-full bg-red-500" id="indicatorP1"></span>
-            <span class="text-red-400 font-bold">P1 MARIO</span>
-            <span class="text-xs text-gray-300">❤️ <span id="livesP1">3</span></span>
-            <span id="scoreP1" class="text-yellow-400 font-mono text-base">0000</span>
-          </div>
-
-          <!-- P2 HUD -->
-          <div class="flex items-center gap-2 bg-green-950/80 border border-green-800/60 px-3 py-1.5 rounded-lg">
-            <span class="w-3 h-3 rounded-full bg-green-500" id="indicatorP2"></span>
-            <span class="text-green-400 font-bold">P2 LUIGI</span>
-            <span class="text-xs text-gray-300">❤️ <span id="livesP2">3</span></span>
-            <span id="scoreP2" class="text-yellow-400 font-mono text-base">0000</span>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <div class="text-gray-300">WAKTU: <span id="timerVal" class="text-yellow-400 font-mono">300</span></div>
-          <div class="text-gray-300">KOIN: <span id="coinCount" class="text-yellow-300">0</span></div>
-          <button onclick="resetServerSlots()" class="bg-gray-800 hover:bg-gray-700 text-xs text-red-400 px-3 py-1.5 rounded-lg border border-gray-700 font-sans transition">
-            <i class="fa-solid fa-arrows-rotate mr-1"></i> Reset Slot
-          </button>
-        </div>
-      </div>
-
-      <!-- Game Canvas Container -->
-      <div class="relative w-full max-w-5xl aspect-[16/9] my-2 bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-gray-800 flex items-center justify-center">
-        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
-
-        <!-- Game End Modal Dialog -->
-        <div id="gameModal" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-6 text-center z-10 hidden">
-          <h2 id="modalTitle" class="font-pixel text-2xl sm:text-3xl text-yellow-400 mb-4">STAGE CLEARED!</h2>
-          <p id="modalDesc" class="text-gray-200 mb-6 text-sm max-w-md">Player 1 & Player 2 berhasil menaklukkan level!</p>
-          <button onclick="restartGameEngine()" class="bg-red-600 hover:bg-red-500 font-pixel text-xs text-white px-6 py-3.5 rounded-xl border-b-4 border-red-800 transition shadow-lg">
-            MAIN LAGI
-          </button>
-        </div>
-      </div>
-
-      <!-- Footer Controller Helper -->
-      <div class="w-full max-w-5xl flex items-center justify-between text-xs text-gray-400 px-2 font-mono">
-        <div><i class="fa-solid fa-wifi mr-1 text-green-400"></i> Buka link ini di 2 HP lalu klik "Ambil Stick 1" & "Ambil Stick 2"</div>
-        <div class="flex gap-4">
-          <span>P1 Status: <span id="p1InputDebug" class="text-red-400">IDLE</span></span>
-          <span>P2 Status: <span id="p2InputDebug" class="text-green-400">IDLE</span></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. MOBILE CONTROLLER SCREEN (P1 / P2) -->
-    <div id="controllerScreen" class="hidden flex-col justify-between w-full h-screen p-3 sm:p-4 bg-gray-950 select-none overflow-hidden touch-none">
-      
-      <!-- Controller Top Header -->
-      <div class="w-full flex items-center justify-between bg-gray-900/90 px-4 py-2 rounded-xl border border-gray-800">
-        <div class="flex items-center gap-2">
-          <div id="ctrlRoleBadge" class="w-3 h-3 rounded-full bg-red-500"></div>
-          <span id="ctrlRoleName" class="font-pixel text-xs sm:text-sm text-yellow-400">STICK P1</span>
-        </div>
-        <div id="ctrlStatus" class="text-xs text-green-400 font-mono flex items-center gap-1">
-          <i class="fa-solid fa-signal text-xs"></i> TERHUBUNG
-        </div>
-        <button onclick="leaveControllerRole()" class="text-xs text-gray-400 hover:text-red-400 font-sans">
-          <i class="fa-solid fa-right-from-bracket mr-1"></i> Lepas Stick
+    <!-- MENU SCREEN -->
+    <div id="menu-screen">
+        <h1>SUPER MARIO</h1>
+        <h2>MULTI-DEVICE CONSOLE</h2>
+        <p style="font-size: 12px; margin-bottom: 15px; color: #aaa;">Pilih mode perangkat ini:</p>
+        <button class="btn-mode btn-display" onclick="startDisplay()">
+            <span>💻 Display (Laptop / TV)</span>
         </button>
-      </div>
-
-      <!-- Main Controller Body (Landscape View) -->
-      <div class="flex-1 grid grid-cols-2 gap-4 items-center justify-between my-auto w-full max-w-4xl mx-auto px-2">
-        
-        <!-- LEFT: D-PAD (Arah) -->
-        <div class="flex items-center justify-center">
-          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900/90 rounded-full border-4 border-gray-800 p-2 shadow-2xl flex items-center justify-center">
-            
-            <!-- Up / Jump -->
-            <button id="btnUp" 
-              class="d-btn absolute top-2 w-14 h-14 bg-gray-800 active:bg-yellow-500 active:text-black text-gray-200 rounded-t-2xl border-t-2 border-x-2 border-gray-600 flex items-center justify-center text-xl shadow-md"
-              data-key="up">
-              <i class="fa-solid fa-caret-up"></i>
-            </button>
-            
-            <!-- Down -->
-            <button id="btnDown" 
-              class="d-btn absolute bottom-2 w-14 h-14 bg-gray-800 active:bg-yellow-500 active:text-black text-gray-200 rounded-b-2xl border-b-2 border-x-2 border-gray-600 flex items-center justify-center text-xl shadow-md"
-              data-key="down">
-              <i class="fa-solid fa-caret-down"></i>
-            </button>
-            
-            <!-- Left -->
-            <button id="btnLeft" 
-              class="d-btn absolute left-2 w-14 h-14 bg-gray-800 active:bg-yellow-500 active:text-black text-gray-200 rounded-l-2xl border-l-2 border-y-2 border-gray-600 flex items-center justify-center text-xl shadow-md"
-              data-key="left">
-              <i class="fa-solid fa-caret-left"></i>
-            </button>
-            
-            <!-- Right -->
-            <button id="btnRight" 
-              class="d-btn absolute right-2 w-14 h-14 bg-gray-800 active:bg-yellow-500 active:text-black text-gray-200 rounded-r-2xl border-r-2 border-y-2 border-gray-600 flex items-center justify-center text-xl shadow-md"
-              data-key="right">
-              <i class="fa-solid fa-caret-right"></i>
-            </button>
-            
-            <!-- Center Cross Pad -->
-            <div class="w-10 h-10 bg-gray-950 rounded-full border border-gray-700"></div>
-          </div>
-        </div>
-
-        <!-- RIGHT: RETRO ACTION BUTTONS (Segitiga, Kotak, Bundar, Kali) -->
-        <div class="flex items-center justify-center">
-          <div class="relative w-44 h-44 sm:w-52 sm:h-52 bg-gray-900/90 rounded-full border-4 border-gray-800 p-2 shadow-2xl flex items-center justify-center">
-            
-            <!-- Triangle (Top / Jump Action) -->
-            <button id="btnTriangle" 
-              class="d-btn absolute top-2 w-14 h-14 bg-green-950 border-2 border-green-500 active:bg-green-500 active:text-black text-green-400 rounded-full flex flex-col items-center justify-center shadow-lg"
-              data-key="jump">
-              <i class="fa-solid fa-play -rotate-90 text-xs mb-0.5"></i>
-              <span class="text-[9px] font-pixel">JUMP</span>
-            </button>
-
-            <!-- Square (Left / Dash Action) -->
-            <button id="btnSquare" 
-              class="d-btn absolute left-2 w-14 h-14 bg-pink-950 border-2 border-pink-500 active:bg-pink-500 active:text-black text-pink-400 rounded-full flex flex-col items-center justify-center shadow-lg"
-              data-key="run">
-              <i class="fa-regular fa-square text-xs mb-0.5"></i>
-              <span class="text-[9px] font-pixel">RUN</span>
-            </button>
-
-            <!-- Circle (Right / Special Action) -->
-            <button id="btnCircle" 
-              class="d-btn absolute right-2 w-14 h-14 bg-red-950 border-2 border-red-500 active:bg-red-500 active:text-black text-red-400 rounded-full flex flex-col items-center justify-center shadow-lg"
-              data-key="action">
-              <i class="fa-regular fa-circle text-xs mb-0.5"></i>
-              <span class="text-[9px] font-pixel">ACT</span>
-            </button>
-
-            <!-- Cross (Bottom / Jump Secondary) -->
-            <button id="btnCross" 
-              class="d-btn absolute bottom-2 w-14 h-14 bg-blue-950 border-2 border-blue-500 active:bg-blue-500 active:text-black text-blue-400 rounded-full flex flex-col items-center justify-center shadow-lg"
-              data-key="jump">
-              <i class="fa-solid fa-xmark text-sm mb-0.5"></i>
-              <span class="text-[9px] font-pixel">JUMP</span>
-            </button>
-            
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Landscape Orientation Tip -->
-      <div class="text-center text-[10px] text-gray-500 font-mono pb-1">
-        <i class="fa-solid fa-mobile-screen-button rotate-90 mr-1"></i> Posisi HP Landscape untuk kontrol optimal.
-      </div>
+        <button id="btn-p1" class="btn-mode btn-p1" onclick="startController(1)">
+            <span>📱 Stick Player 1 (Mario)</span> <small id="status-p1">Ready</small>
+        </button>
+        <button id="btn-p2" class="btn-mode btn-p2" onclick="startController(2)">
+            <span>📱 Stick Player 2 (Luigi)</span> <small id="status-p2">Ready</small>
+        </button>
     </div>
 
-  </div>
+    <!-- LAPTOP DISPLAY SCREEN -->
+    <div id="display-screen">
+        <div id="qr-modal">
+            <h2 style="margin-bottom: 15px; color: #f1c40f;">SCAN QR CODE DENGAN HP</h2>
+            <div id="qr-box">
+                <div class="qr-card">
+                    <div id="qrcode-p1"></div>
+                    <b style="color: #e74c3c; margin-top: 5px;">Player 1 (Mario)</b>
+                    <span id="p1-state">Menunggu HP 1...</span>
+                </div>
+                <div class="qr-card">
+                    <div id="qrcode-p2"></div>
+                    <b style="color: #2ecc71; margin-top: 5px;">Player 2 (Luigi)</b>
+                    <span id="p2-state">Menunggu HP 2...</span>
+                </div>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #ccc;">Atau buka URL ini di HP dan masukkan ID Room.</p>
+            <button onclick="closeQRModal()" style="margin-top: 15px; padding: 10px 20px; border-radius: 8px; border: none; background: #f1c40f; font-weight: bold; cursor: pointer;">Mulai Game Tanpa Tunggu</button>
+        </div>
+        <div id="canvas-container">
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+        </div>
+    </div>
 
-  <!-- FIREBASE IMPORTS & BACKEND HANDLER -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-      getFirestore, 
-      doc, 
-      setDoc, 
-      onSnapshot, 
-      updateDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // --- Sound Effects Synthesizer (Web Audio API) ---
-    class SoundFX {
-      constructor() {
-        this.ctx = null;
-      }
-
-      init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-      }
-
-      playJump() {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.15);
-      }
-
-      playCoin() {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
-        osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.25);
-      }
-
-      playStomp() {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-        osc.frequency.linearRampToValueAtTime(30, this.ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
-        osc.start();
-        osc.stop(this.ctx.currentTime + 0.1);
-      }
-
-      playVictory() {
-        this.init();
-        if (!this.ctx) return;
-        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
-        notes.forEach((freq, idx) => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.type = 'square';
-          osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0.15, this.ctx.currentTime + idx * 0.1);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.1 + 0.2);
-          osc.start(this.ctx.currentTime + idx * 0.1);
-          osc.stop(this.ctx.currentTime + idx * 0.1 + 0.2);
-        });
-      }
-    }
-
-    window.sfx = new SoundFX();
-
-    // --- Firebase Setup ---
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'super-mario-multidevice-app';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-      apiKey: "demo-api-key",
-      authDomain: "demo-app.firebaseapp.com",
-      projectId: "demo-app",
-      storageBucket: "demo-app.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:demo"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let currentUser = null;
-    let currentRole = null; // 'display', 'p1', 'p2'
-
-    // Document reference according to Rule 1
-    const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'marioRoom', 'main');
-
-    const defaultState = {
-      slots: { p1: false, p2: false },
-      inputP1: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
-      inputP2: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
-      lastUpdated: serverTimestamp()
-    };
-
-    async function initAuth() {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-        currentUser = auth.currentUser;
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        document.getElementById('roleSelectScreen').classList.remove('hidden');
+    <!-- HP CONTROLLER SCREEN -->
+    <div id="controller-screen">
+        <div id="status-bar">Terhubung sebagai: <b id="player-tag">-</b></div>
         
-        listenRoomState();
-      } catch (err) {
-        console.error("Auth error:", err);
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        document.getElementById('roleSelectScreen').classList.remove('hidden');
-      }
-    }
+        <!-- DPAD (KIRI) -->
+        <div class="dpad">
+            <div class="dbtn dbtn-up" data-key="up">▲</div>
+            <div class="dbtn dbtn-left" data-key="left">◀</div>
+            <div class="dbtn dbtn-right" data-key="right">▶</div>
+            <div class="dbtn dbtn-down" data-key="down">▼</div>
+        </div>
 
-    function listenRoomState() {
-      onSnapshot(roomDocRef, (snapshot) => {
-        if (!snapshot.exists()) {
-          setDoc(roomDocRef, defaultState);
-          return;
+        <!-- ACTION BUTTONS (KANAN) -->
+        <div class="action-buttons">
+            <div class="abtn abtn-triangle" data-key="triangle">▲</div>
+            <div class="abtn abtn-square" data-key="square">■</div>
+            <div class="abtn abtn-circle" data-key="circle">●</div>
+            <div class="abtn abtn-cross" data-key="cross">✖</div>
+        </div>
+    </div>
+
+    <script>
+        // PEERJS SETUP & GLOBAL VARIABLES
+        let peer = null;
+        let connections = { p1: null, p2: null };
+        let roomID = Math.random().toString(36).substring(2, 8).toUpperCase();
+        let currentMode = '';
+
+        // Web Audio Synthesizer (Retro Sound Effects)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'jump') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'coin') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+            }
         }
 
-        const data = snapshot.data();
-        updateSlotButtonsUI(data.slots || { p1: false, p2: false });
+        // --- 1. DISPLAY (LAPTOP ENGINE) ---
+        function startDisplay() {
+            currentMode = 'display';
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('display-screen').style.display = 'flex';
 
-        if (currentRole === 'display') {
-          if (data.inputP1) window.gameInputs.p1 = data.inputP1;
-          if (data.inputP2) window.gameInputs.p2 = data.inputP2;
+            const displayPeerId = 'MARIO-ROOM-' + roomID;
+            peer = new Peer(displayPeerId);
 
-          updateDisplayHUD(data.slots || {});
-        }
-      }, (err) => {
-        console.error("Snapshot listener error:", err);
-      });
-    }
+            peer.on('open', (id) => {
+                const currentURL = window.location.href.split('?')[0];
+                const urlP1 = `${currentURL}?room=${displayPeerId}&player=1`;
+                const urlP2 = `${currentURL}?room=${displayPeerId}&player=2`;
 
-    function updateSlotButtonsUI(slots) {
-      const btnP1 = document.getElementById('btnSelectP1');
-      const btnP2 = document.getElementById('btnSelectP2');
-      const badgeP1 = document.getElementById('badgeP1');
-      const badgeP2 = document.getElementById('badgeP2');
-      const slotNotice = document.getElementById('slotNotice');
+                new QRCode(document.getElementById("qrcode-p1"), { text: urlP1, width: 128, height: 128 });
+                new QRCode(document.getElementById("qrcode-p2"), { text: urlP2, width: 128, height: 128 });
+            });
 
-      if (slots.p1) {
-        btnP1.disabled = true;
-        badgeP1.innerText = "Terisi";
-        badgeP1.className = "text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-normal";
-      } else {
-        btnP1.disabled = false;
-        badgeP1.innerText = "Tersedia";
-        badgeP1.className = "text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded-full font-normal";
-      }
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    if (data.type === 'REGISTER') {
+                        if (data.player === 1 && !connections.p1) {
+                            connections.p1 = conn;
+                            document.getElementById('p1-state').innerText = "✅ TERHUBUNG";
+                            document.getElementById('p1-state').style.color = "green";
+                            conn.send({ type: 'REGISTER_SUCCESS', player: 1 });
+                        } else if (data.player === 2 && !connections.p2) {
+                            connections.p2 = conn;
+                            document.getElementById('p2-state').innerText = "✅ TERHUBUNG";
+                            document.getElementById('p2-state').style.color = "green";
+                            conn.send({ type: 'REGISTER_SUCCESS', player: 2 });
+                        } else {
+                            conn.send({ type: 'SLOT_FULL' });
+                        }
+                    }
 
-      if (slots.p2) {
-        btnP2.disabled = true;
-        badgeP2.innerText = "Terisi";
-        badgeP2.className = "text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-normal";
-      } else {
-        btnP2.disabled = false;
-        badgeP2.innerText = "Tersedia";
-        badgeP2.className = "text-xs bg-green-900 text-green-200 px-2 py-0.5 rounded-full font-normal";
-      }
+                    if (data.type === 'INPUT') {
+                        handleInput(data.player, data.key, data.state);
+                    }
+                });
 
-      if (slots.p1 && slots.p2) {
-        slotNotice.classList.remove('hidden');
-      } else {
-        slotNotice.classList.add('hidden');
-      }
-    }
+                conn.on('close', () => {
+                    if (connections.p1 === conn) { connections.p1 = null; document.getElementById('p1-state').innerText = "Terputus"; }
+                    if (connections.p2 === conn) { connections.p2 = null; document.getElementById('p2-state').innerText = "Terputus"; }
+                });
+            });
 
-    window.selectRole = async function(role) {
-      if (!currentUser) return;
-      currentRole = role;
-
-      if (role === 'p1' || role === 'p2') {
-        try {
-          const updatePayload = {};
-          updatePayload[`slots.${role}`] = true;
-          await updateDoc(roomDocRef, updatePayload);
-        } catch (e) {
-          console.error("Error setting slot:", e);
+            initGameEngine();
         }
 
-        document.getElementById('roleSelectScreen').classList.add('hidden');
-        document.getElementById('controllerScreen').classList.remove('hidden');
-        document.getElementById('controllerScreen').classList.add('flex');
-
-        const roleBadge = document.getElementById('ctrlRoleBadge');
-        const roleName = document.getElementById('ctrlRoleName');
-
-        if (role === 'p1') {
-          roleBadge.className = "w-3 h-3 rounded-full bg-red-500 animate-pulse";
-          roleName.innerText = "STICK P1 (MARIO)";
-          roleName.className = "font-pixel text-xs sm:text-sm text-red-400";
-        } else {
-          roleBadge.className = "w-3 h-3 rounded-full bg-green-500 animate-pulse";
-          roleName.innerText = "STICK P2 (LUIGI)";
-          roleName.className = "font-pixel text-xs sm:text-sm text-green-400";
+        function closeQRModal() {
+            document.getElementById('qr-modal').style.display = 'none';
         }
 
-        setupControllerTouchEvents();
+        // --- 2. CONTROLLER (HP) ---
+        function startController(playerNum) {
+            const urlParams = new URLSearchParams(window.location.search);
+            let targetRoom = urlParams.get('room');
 
-      } else if (role === 'display') {
-        document.getElementById('roleSelectScreen').classList.add('hidden');
-        document.getElementById('displayScreen').classList.remove('hidden');
-        document.getElementById('displayScreen').classList.add('flex');
+            if (!targetRoom) {
+                targetRoom = prompt("Masukkan Kode Room dari Laptop (misal: MARIO-ROOM-XXXXXX):");
+                if (!targetRoom) return;
+            }
 
-        window.initGameEngine();
-      }
-    };
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('controller-screen').style.display = 'flex';
+            document.getElementById('player-tag').innerText = `Player ${playerNum} (${playerNum === 1 ? 'Mario' : 'Luigi'})`;
+            document.getElementById('player-tag').style.color = playerNum === 1 ? '#e74c3c' : '#2ecc71';
 
-    window.leaveControllerRole = async function() {
-      if (currentRole === 'p1' || currentRole === 'p2') {
-        try {
-          const updatePayload = {};
-          updatePayload[`slots.${currentRole}`] = false;
-          await updateDoc(roomDocRef, updatePayload);
-        } catch (e) {
-          console.error("Error releasing slot:", e);
+            peer = new Peer();
+
+            peer.on('open', () => {
+                const conn = peer.connect(targetRoom);
+                
+                conn.on('open', () => {
+                    conn.send({ type: 'REGISTER', player: playerNum });
+                });
+
+                conn.on('data', (data) => {
+                    if (data.type === 'SLOT_FULL') {
+                        alert("Slot player ini sudah terisi oleh HP lain!");
+                        window.location.href = window.location.pathname;
+                    }
+                });
+
+                setupTouchControls(conn, playerNum);
+            });
         }
-      }
-      currentRole = null;
-      document.getElementById('controllerScreen').classList.add('hidden');
-      document.getElementById('controllerScreen').classList.remove('flex');
-      document.getElementById('roleSelectScreen').classList.remove('hidden');
-    };
 
-    window.resetServerSlots = async function() {
-      try {
-        await updateDoc(roomDocRef, {
-          'slots.p1': false,
-          'slots.p2': false,
-          'inputP1': { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
-          'inputP2': { left: false, right: false, up: false, down: false, jump: false, run: false, action: false }
-        });
-      } catch (e) {
-        console.error("Error resetting slots:", e);
-      }
-    };
+        function setupTouchControls(conn, playerNum) {
+            const buttons = document.querySelectorAll('.dbtn, .abtn');
+            buttons.forEach(btn => {
+                const key = btn.getAttribute('data-key');
 
-    function updateDisplayHUD(slots) {
-      const ind1 = document.getElementById('indicatorP1');
-      const ind2 = document.getElementById('indicatorP2');
-      const dbg1 = document.getElementById('p1InputDebug');
-      const dbg2 = document.getElementById('p2InputDebug');
+                const sendAction = (state) => {
+                    if (conn && conn.open) {
+                        conn.send({ type: 'INPUT', player: playerNum, key: key, state: state });
+                    }
+                };
 
-      if (slots.p1) {
-        ind1.className = "w-3 h-3 rounded-full bg-red-500 animate-ping";
-      } else {
-        ind1.className = "w-3 h-3 rounded-full bg-gray-600";
-      }
+                btn.addEventListener('touchstart', (e) => { e.preventDefault(); sendAction(true); });
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); sendAction(false); });
+                btn.addEventListener('mousedown', () => sendAction(true));
+                btn.addEventListener('mouseup', () => sendAction(false));
+            });
+        }
 
-      if (slots.p2) {
-        ind2.className = "w-3 h-3 rounded-full bg-green-500 animate-ping";
-      } else {
-        ind2.className = "w-3 h-3 rounded-full bg-gray-600";
-      }
-
-      const activeP1 = Object.keys(window.gameInputs.p1).filter(k => window.gameInputs.p1[k]).join(',');
-      const activeP2 = Object.keys(window.gameInputs.p2).filter(k => window.gameInputs.p2[k]).join(',');
-      dbg1.innerText = activeP1 || 'IDLE';
-      dbg2.innerText = activeP2 || 'IDLE';
-    }
-
-    const localInputState = { left: false, right: false, up: false, down: false, jump: false, run: false, action: false };
-
-    function setupControllerTouchEvents() {
-      const buttons = document.querySelectorAll('.d-btn');
-      
-      buttons.forEach(btn => {
-        const key = btn.getAttribute('data-key');
-
-        const press = (e) => {
-          e.preventDefault();
-          if (!localInputState[key]) {
-            localInputState[key] = true;
-            syncInputToFirebase();
-          }
+        // --- 3. GAME ENGINE (SUPER MARIO 2D) ---
+        const players = {
+            1: { x: 50, y: 300, vx: 0, vy: 0, width: 24, height: 32, color: '#e74c3c', grounded: false, score: 0 },
+            2: { x: 90, y: 300, vx: 0, vy: 0, width: 24, height: 32, color: '#2ecc71', grounded: false, score: 0 }
         };
 
-        const release = (e) => {
-          e.preventDefault();
-          if (localInputState[key]) {
-            localInputState[key] = false;
-            syncInputToFirebase();
-          }
+        const inputs = {
+            1: { left: false, right: false, up: false, cross: false },
+            2: { left: false, right: false, up: false, cross: false }
         };
 
-        btn.addEventListener('touchstart', press, { passive: false });
-        btn.addEventListener('touchend', release, { passive: false });
-        btn.addEventListener('mousedown', press);
-        btn.addEventListener('mouseup', release);
-        btn.addEventListener('mouseleave', release);
-      });
-    }
+        const levelBlocks = [
+            { x: 0, y: 350, w: 2000, h: 50, type: 'ground' },
+            { x: 200, y: 250, w: 40, h: 40, type: 'block' },
+            { x: 240, y: 250, w: 40, h: 40, type: 'coin-block', active: true },
+            { x: 280, y: 250, w: 40, h: 40, type: 'block' },
+            { x: 450, y: 200, w: 100, h: 20, type: 'platform' }
+        ];
 
-    let syncTimeout = null;
-    function syncInputToFirebase() {
-      if (!currentRole || (currentRole !== 'p1' && currentRole !== 'p2')) return;
-      
-      clearTimeout(syncTimeout);
-      syncTimeout = setTimeout(async () => {
-        try {
-          const updatePayload = {};
-          updatePayload[currentRole === 'p1' ? 'inputP1' : 'inputP2'] = { ...localInputState };
-          await updateDoc(roomDocRef, updatePayload);
-        } catch (err) {
-          console.error("Input sync failed:", err);
-        }
-      }, 15);
-    }
-
-    initAuth();
-  </script>
-
-  <!-- HTML5 CANVAS GAME ENGINE -->
-  <script>
-    window.gameInputs = {
-      p1: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false },
-      p2: { left: false, right: false, up: false, down: false, jump: false, run: false, action: false }
-    };
-
-    // Keyboard controls backup (P1: WASD, P2: Arrows)
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'a' || e.key === 'A') window.gameInputs.p1.left = true;
-      if (e.key === 'd' || e.key === 'D') window.gameInputs.p1.right = true;
-      if (e.key === 'w' || e.key === 'W' || e.key === ' ') window.gameInputs.p1.jump = true;
-      if (e.key === 's' || e.key === 'S') window.gameInputs.p1.down = true;
-
-      if (e.key === 'ArrowLeft') window.gameInputs.p2.left = true;
-      if (e.key === 'ArrowRight') window.gameInputs.p2.right = true;
-      if (e.key === 'ArrowUp') window.gameInputs.p2.jump = true;
-      if (e.key === 'ArrowDown') window.gameInputs.p2.down = true;
-    });
-
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'a' || e.key === 'A') window.gameInputs.p1.left = false;
-      if (e.key === 'd' || e.key === 'D') window.gameInputs.p1.right = false;
-      if (e.key === 'w' || e.key === 'W' || e.key === ' ') window.gameInputs.p1.jump = false;
-      if (e.key === 's' || e.key === 'S') window.gameInputs.p1.down = false;
-
-      if (e.key === 'ArrowLeft') window.gameInputs.p2.left = false;
-      if (e.key === 'ArrowRight') window.gameInputs.p2.right = false;
-      if (e.key === 'ArrowUp') window.gameInputs.p2.jump = false;
-      if (e.key === 'ArrowDown') window.gameInputs.p2.down = false;
-    });
-
-    let canvas, ctx;
-    let cameraX = 0;
-    let totalCoins = 0;
-    let gameTimer = 300;
-    let timerInterval = null;
-    let gameOver = false;
-
-    const GRAVITY = 0.55;
-    const MAP_WIDTH = 3400;
-
-    let platforms = [];
-    let coins = [];
-    let goombas = [];
-    let koopas = [];
-    let flagPole = null;
-
-    class Player {
-      constructor(x, y, color, hatColor, label) {
-        this.x = x;
-        this.y = y;
-        this.startX = x;
-        this.startY = y;
-        this.width = 24;
-        this.height = 36;
-        this.vx = 0;
-        this.vy = 0;
-        this.speed = 4.2;
-        this.jumpPower = -12;
-        this.grounded = false;
-        this.color = color;
-        this.hatColor = hatColor;
-        this.label = label;
-        this.score = 0;
-        this.lives = 3;
-        this.facing = 'right';
-      }
-
-      update(input) {
-        const currentSpeed = input.run ? this.speed * 1.4 : this.speed;
-
-        if (input.left) {
-          this.vx = -currentSpeed;
-          this.facing = 'left';
-        } else if (input.right) {
-          this.vx = currentSpeed;
-          this.facing = 'right';
-        } else {
-          this.vx *= 0.7;
-        }
-
-        if ((input.jump || input.up) && this.grounded) {
-          this.vy = this.jumpPower;
-          this.grounded = false;
-          if (window.sfx) window.sfx.playJump();
-        }
-
-        this.vy += GRAVITY;
-
-        this.x += this.vx;
-        this.checkCollisionX();
-
-        this.y += this.vy;
-        this.checkCollisionY();
-
-        if (this.x < 0) this.x = 0;
-        if (this.x > MAP_WIDTH - this.width) this.x = MAP_WIDTH - this.width;
-
-        if (this.y > 600) {
-          this.loseLife();
-        }
-      }
-
-      checkCollisionX() {
-        for (let p of platforms) {
-          if (
-            this.x < p.x + p.w &&
-            this.x + this.width > p.x &&
-            this.y < p.y + p.h &&
-            this.y + this.height > p.y
-          ) {
-            if (this.vx > 0) this.x = p.x - this.width;
-            if (this.vx < 0) this.x = p.x + p.w;
-          }
-        }
-      }
-
-      checkCollisionY() {
-        this.grounded = false;
-        for (let p of platforms) {
-          if (
-            this.x < p.x + p.w &&
-            this.x + this.width > p.x &&
-            this.y < p.y + p.h &&
-            this.y + this.height > p.y
-          ) {
-            if (this.vy > 0) {
-              this.y = p.y - this.height;
-              this.vy = 0;
-              this.grounded = true;
-            } else if (this.vy < 0) {
-              this.y = p.y + p.h;
-              this.vy = 0;
-              if (p.type === 'question' && !p.hit) {
-                p.hit = true;
-                totalCoins += 1;
-                this.score += 100;
-                if (window.sfx) window.sfx.playCoin();
-              }
+        function handleInput(playerNum, key, state) {
+            if (inputs[playerNum]) {
+                inputs[playerNum][key] = state;
             }
-          }
-        }
-      }
-
-      loseLife() {
-        this.lives -= 1;
-        if (this.lives <= 0) {
-          this.lives = 0;
-        }
-        this.respawn();
-      }
-
-      respawn() {
-        this.x = this.startX;
-        this.y = this.startY;
-        this.vx = 0;
-        this.vy = 0;
-      }
-
-      draw() {
-        ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x - cameraX, this.y + 12, this.width, this.height - 12);
-
-        ctx.fillStyle = this.hatColor;
-        ctx.fillRect(this.x - cameraX + 3, this.y + 10, this.width - 6, 12);
-
-        ctx.fillStyle = '#ffcc99';
-        ctx.fillRect(this.x - cameraX + 2, this.y, this.width - 4, 12);
-
-        ctx.fillStyle = this.hatColor;
-        ctx.fillRect(this.x - cameraX, this.y - 2, this.width, 6);
-
-        ctx.fillStyle = '#000';
-        if (this.facing === 'right') {
-          ctx.fillRect(this.x - cameraX + 14, this.y + 4, 4, 3);
-          ctx.fillRect(this.x - cameraX + 12, this.y + 8, 8, 3);
-        } else {
-          ctx.fillRect(this.x - cameraX + 6, this.y + 4, 4, 3);
-          ctx.fillRect(this.x - cameraX + 4, this.y + 8, 8, 3);
         }
 
-        ctx.font = '9px "Press Start 2P"';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(this.label, this.x - cameraX + 2, this.y - 8);
+        function initGameEngine() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const gravity = 0.5;
 
-        ctx.restore();
-      }
-    }
+            function update() {
+                [1, 2].forEach(pId => {
+                    const p = players[pId];
+                    const input = inputs[pId];
 
-    class Goomba {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 24;
-        this.height = 24;
-        this.vx = -1.5;
-        this.alive = true;
-      }
+                    // Movement
+                    if (input.left) p.vx = -4;
+                    else if (input.right) p.vx = 4;
+                    else p.vx = 0;
 
-      update() {
-        if (!this.alive) return;
-        this.x += this.vx;
+                    // Jump (Tombol Atas atau Cross / Kali)
+                    if ((input.up || input.cross) && p.grounded) {
+                        p.vy = -11;
+                        p.grounded = false;
+                        playSound('jump');
+                    }
 
-        for (let p of platforms) {
-          if (
-            this.x < p.x + p.w &&
-            this.x + this.width > p.x &&
-            this.y < p.y + p.h &&
-            this.y + this.height > p.y
-          ) {
-            this.vx *= -1;
-          }
-        }
-      }
+                    p.vy += gravity;
+                    p.x += p.vx;
+                    p.y += p.vy;
 
-      draw() {
-        if (!this.alive) return;
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(this.x - cameraX, this.y, this.width, this.height);
-        
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(this.x - cameraX + 3, this.y + 6, 5, 8);
-        ctx.fillRect(this.x - cameraX + 14, this.y + 6, 5, 8);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(this.x - cameraX + 5, this.y + 8, 3, 4);
-        ctx.fillRect(this.x - cameraX + 14, this.y + 8, 3, 4);
-      }
-    }
+                    // Collision with ground/blocks
+                    p.grounded = false;
+                    levelBlocks.forEach(b => {
+                        if (p.x < b.x + b.w && p.x + p.width > b.x && p.y < b.y + b.h && p.y + p.height > b.y) {
+                            if (p.vy > 0 && p.y + p.height - p.vy <= b.y) {
+                                p.y = b.y - p.height;
+                                p.vy = 0;
+                                p.grounded = true;
+                            }
+                        }
+                    });
 
-    class Koopa {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 24;
-        this.height = 32;
-        this.vx = -1.8;
-        this.alive = true;
-      }
+                    // Bounds
+                    if (p.x < 0) p.x = 0;
+                });
 
-      update() {
-        if (!this.alive) return;
-        this.x += this.vx;
+                // Render
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        for (let p of platforms) {
-          if (
-            this.x < p.x + p.w &&
-            this.x + this.width > p.x &&
-            this.y < p.y + p.h &&
-            this.y + this.height > p.y
-          ) {
-            this.vx *= -1;
-          }
-        }
-      }
+                // Draw Blocks
+                levelBlocks.forEach(b => {
+                    ctx.fillStyle = b.type === 'ground' ? '#c0392b' : '#f39c12';
+                    ctx.fillRect(b.x, b.y, b.w, b.h);
+                    ctx.strokeStyle = '#000';
+                    ctx.strokeRect(b.x, b.y, b.w, b.h);
+                });
 
-      draw() {
-        if (!this.alive) return;
-        ctx.fillStyle = '#00a800'; // Green shell
-        ctx.fillRect(this.x - cameraX, this.y + 10, this.width, this.height - 10);
-        
-        ctx.fillStyle = '#ffcc99'; // Head
-        ctx.fillRect(this.x - cameraX + 2, this.y, 14, 12);
-      }
-    }
+                // Draw Players
+                [1, 2].forEach(pId => {
+                    const p = players[pId];
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.width, p.height);
+                    
+                    // Eyes
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(p.x + 14, p.y + 6, 6, 6);
+                });
 
-    let p1, p2;
-
-    window.initGameEngine = function() {
-      canvas = document.getElementById('gameCanvas');
-      ctx = canvas.getContext('2d');
-      
-      canvas.width = 960;
-      canvas.height = 540;
-
-      buildLevel();
-
-      p1 = new Player(80, 300, '#0000ff', '#ff0000', 'P1');
-      p2 = new Player(120, 300, '#0000ff', '#00cc00', 'P2');
-
-      startTimer();
-      requestAnimationFrame(gameLoop);
-    };
-
-    function startTimer() {
-      clearInterval(timerInterval);
-      gameTimer = 300;
-      timerInterval = setInterval(() => {
-        if (!gameOver) {
-          gameTimer--;
-          document.getElementById('timerVal').innerText = gameTimer;
-          if (gameTimer <= 0) {
-            triggerGameOver("WAKTU HABIS!");
-          }
-        }
-      }, 1000);
-    }
-
-    function buildLevel() {
-      platforms = [];
-      coins = [];
-      goombas = [];
-      koopas = [];
-
-      // Ground
-      platforms.push({ x: 0, y: 460, w: 1200, h: 80, type: 'ground' });
-      platforms.push({ x: 1320, y: 460, w: 900, h: 80, type: 'ground' });
-      platforms.push({ x: 2300, y: 460, w: 1100, h: 80, type: 'ground' });
-
-      // Blocks
-      const blocks = [
-        { x: 300, y: 340, type: 'question' },
-        { x: 350, y: 340, type: 'brick' },
-        { x: 380, y: 340, type: 'question' },
-        { x: 410, y: 340, type: 'brick' },
-        { x: 380, y: 220, type: 'question' },
-
-        { x: 800, y: 340, type: 'brick' },
-        { x: 830, y: 340, type: 'question' },
-        { x: 860, y: 340, type: 'brick' },
-
-        { x: 1450, y: 320, type: 'question' },
-        { x: 1550, y: 240, type: 'brick' },
-        { x: 1650, y: 320, type: 'question' },
-
-        { x: 2400, y: 360, type: 'brick' },
-        { x: 2430, y: 360, type: 'question' },
-        { x: 2460, y: 360, type: 'brick' }
-      ];
-
-      blocks.forEach(b => {
-        platforms.push({ x: b.x, y: b.y, w: 32, h: 32, type: b.type, hit: false });
-      });
-
-      // Pipes
-      platforms.push({ x: 600, y: 380, w: 50, h: 80, type: 'pipe' });
-      platforms.push({ x: 1000, y: 340, w: 50, h: 120, type: 'pipe' });
-      platforms.push({ x: 1800, y: 380, w: 50, h: 80, type: 'pipe' });
-
-      // Coins
-      coins = [
-        { x: 380, y: 180, collected: false },
-        { x: 615, y: 340, collected: false },
-        { x: 1460, y: 280, collected: false },
-        { x: 1565, y: 200, collected: false },
-        { x: 1665, y: 280, collected: false }
-      ];
-
-      // Enemies
-      goombas = [
-        new Goomba(500, 436),
-        new Goomba(900, 436),
-        new Goomba(1500, 436),
-        new Goomba(2500, 436)
-      ];
-
-      koopas = [
-        new Koopa(1100, 428),
-        new Koopa(2000, 428)
-      ];
-
-      // Flagpole
-      flagPole = { x: 3100, y: 180, w: 10, h: 280 };
-    }
-
-    function gameLoop() {
-      if (gameOver) return;
-
-      updatePhysics();
-      render();
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    function updatePhysics() {
-      p1.update(window.gameInputs.p1);
-      p2.update(window.gameInputs.p2);
-
-      const avgX = (p1.x + p2.x) / 2;
-      cameraX = Math.max(0, Math.min(avgX - canvas.width / 2 + 100, MAP_WIDTH - canvas.width));
-
-      // Goomba collisions
-      goombas.forEach(g => {
-        g.update();
-        [p1, p2].forEach(p => {
-          if (
-            g.alive &&
-            p.x < g.x + g.width &&
-            p.x + p.width > g.x &&
-            p.y < g.y + g.height &&
-            p.y + p.height > g.y
-          ) {
-            if (p.vy > 0 && p.y + p.height - p.vy <= g.y + 10) {
-              g.alive = false;
-              p.vy = -7;
-              p.score += 200;
-              if (window.sfx) window.sfx.playStomp();
-            } else {
-              p.loseLife();
+                requestAnimationFrame(update);
             }
-          }
-        });
-      });
 
-      // Koopa collisions
-      koopas.forEach(k => {
-        k.update();
-        [p1, p2].forEach(p => {
-          if (
-            k.alive &&
-            p.x < k.x + k.width &&
-            p.x + p.width > k.x &&
-            p.y < k.y + k.height &&
-            p.y + p.height > k.y
-          ) {
-            if (p.vy > 0 && p.y + p.height - p.vy <= k.y + 10) {
-              k.alive = false;
-              p.vy = -7;
-              p.score += 300;
-              if (window.sfx) window.sfx.playStomp();
-            } else {
-              p.loseLife();
+            update();
+        }
+
+        // Auto Detect Parameters (Jika discan dari QR Code)
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playerParam = urlParams.get('player');
+            if (playerParam) {
+                startController(parseInt(playerParam));
             }
-          }
-        });
-      });
-
-      // Coins
-      coins.forEach(c => {
-        if (!c.collected) {
-          [p1, p2].forEach(p => {
-            if (
-              p.x < c.x + 16 &&
-              p.x + p.width > c.x &&
-              p.y < c.y + 16 &&
-              p.y + p.height > c.y
-            ) {
-              c.collected = true;
-              totalCoins += 1;
-              p.score += 100;
-              if (window.sfx) window.sfx.playCoin();
-            }
-          });
-        }
-      });
-
-      // Check Flagpole
-      [p1, p2].forEach(p => {
-        if (p.x >= flagPole.x) {
-          triggerVictory(p);
-        }
-      });
-
-      // Update HUD
-      document.getElementById('scoreP1').innerText = String(p1.score).padStart(4, '0');
-      document.getElementById('scoreP2').innerText = String(p2.score).padStart(4, '0');
-      document.getElementById('livesP1').innerText = p1.lives;
-      document.getElementById('livesP2').innerText = p2.lives;
-      document.getElementById('coinCount').innerText = totalCoins;
-    }
-
-    function render() {
-      // Sky
-      ctx.fillStyle = '#5c94fc';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Clouds
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.beginPath();
-      ctx.arc(200 - cameraX * 0.3, 100, 30, 0, Math.PI * 2);
-      ctx.arc(230 - cameraX * 0.3, 90, 40, 0, Math.PI * 2);
-      ctx.arc(260 - cameraX * 0.3, 100, 30, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Platforms
-      platforms.forEach(p => {
-        if (p.type === 'ground') {
-          ctx.fillStyle = '#c84c0c';
-          ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-          ctx.fillStyle = '#00a800';
-          ctx.fillRect(p.x - cameraX, p.y, p.w, 12);
-        } else if (p.type === 'brick') {
-          ctx.fillStyle = '#b84418';
-          ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-          ctx.strokeStyle = '#000';
-          ctx.strokeRect(p.x - cameraX, p.y, p.w, p.h);
-        } else if (p.type === 'question') {
-          ctx.fillStyle = p.hit ? '#808080' : '#fcb42c';
-          ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-          ctx.strokeStyle = '#000';
-          ctx.strokeRect(p.x - cameraX, p.y, p.w, p.h);
-          if (!p.hit) {
-            ctx.fillStyle = '#000';
-            ctx.font = 'bold 16px "Press Start 2P"';
-            ctx.fillText('?', p.x - cameraX + 8, p.y + 22);
-          }
-        } else if (p.type === 'pipe') {
-          ctx.fillStyle = '#00a800';
-          ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-          ctx.fillStyle = '#00d800';
-          ctx.fillRect(p.x - cameraX - 4, p.y, p.w + 8, 20);
-          ctx.strokeStyle = '#000';
-          ctx.strokeRect(p.x - cameraX - 4, p.y, p.w + 8, 20);
-        }
-      });
-
-      // Coins
-      coins.forEach(c => {
-        if (!c.collected) {
-          ctx.fillStyle = '#ffd700';
-          ctx.beginPath();
-          ctx.ellipse(c.x - cameraX + 8, c.y + 8, 6, 10, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      // Flag Pole
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(flagPole.x - cameraX, flagPole.y, flagPole.w, flagPole.h);
-      ctx.fillStyle = '#00a800';
-      ctx.beginPath();
-      ctx.arc(flagPole.x - cameraX + 5, flagPole.y, 12, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ff0000';
-      ctx.beginPath();
-      ctx.moveTo(flagPole.x - cameraX + 10, flagPole.y + 10);
-      ctx.lineTo(flagPole.x - cameraX + 60, flagPole.y + 30);
-      ctx.lineTo(flagPole.x - cameraX + 10, flagPole.y + 50);
-      ctx.fill();
-
-      // Enemies
-      goombas.forEach(g => g.draw());
-      koopas.forEach(k => k.draw());
-
-      // Players
-      p1.draw();
-      p2.draw();
-    }
-
-    function triggerVictory(winner) {
-      gameOver = true;
-      clearInterval(timerInterval);
-      if (window.sfx) window.sfx.playVictory();
-
-      const modal = document.getElementById('gameModal');
-      const title = document.getElementById('modalTitle');
-      const desc = document.getElementById('modalDesc');
-
-      title.innerText = "STAGE CLEARED!";
-      desc.innerText = `Selamat! ${winner.label} memimpin kemenangan menaklukkan bendera finish! Total Koin: ${totalCoins}`;
-      modal.classList.remove('hidden');
-    }
-
-    function triggerGameOver(reason) {
-      gameOver = true;
-      clearInterval(timerInterval);
-
-      const modal = document.getElementById('gameModal');
-      const title = document.getElementById('modalTitle');
-      const desc = document.getElementById('modalDesc');
-
-      title.innerText = "GAME OVER";
-      desc.innerText = `${reason} Silakan coba lagi!`;
-      modal.classList.remove('hidden');
-    }
-
-    window.restartGameEngine = function() {
-      gameOver = false;
-      document.getElementById('gameModal').classList.add('hidden');
-      buildLevel();
-      p1.respawn();
-      p2.respawn();
-      p1.lives = 3;
-      p2.lives = 3;
-      p1.score = 0;
-      p2.score = 0;
-      totalCoins = 0;
-      startTimer();
-      requestAnimationFrame(gameLoop);
-    };
-  </script>
+        };
+    </script>
 </body>
 </html>
