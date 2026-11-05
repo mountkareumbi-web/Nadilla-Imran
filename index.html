@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Super Mario Bros - Web Remote Multiplayer</title>
-    <!-- Firebase Realtime Database Client -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- PeerJS Library untuk Koneksi Direct Peer-to-Peer -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -144,7 +143,7 @@
             background: rgba(0,0,0,0.3);
         }
 
-        /* SCREEN 3: DISPLAY LAPTOP (FULL SCREEN RESPONSIVE) */
+        /* SCREEN 3: DISPLAY LAPTOP */
         #display-screen {
             display: none;
             flex-direction: column;
@@ -222,7 +221,7 @@
             cursor: pointer;
         }
         
-        /* D-PAD LANDSCAPE (KIRI) */
+        /* D-PAD LANDSCAPE */
         .dpad-container {
             position: absolute;
             bottom: 20px;
@@ -252,7 +251,7 @@
         .dpad-right { top: 52px; right: 0; width: 55px; height: 56px; }
         .dpad-center{ top: 52px; left: 52px; width: 56px; height: 56px; background: #27272a; border: none; }
 
-        /* ACTION BUTTONS (KANAN: Segitiga, Kotak, Kali, Bundar) */
+        /* ACTION BUTTONS */
         .action-container {
             position: absolute;
             bottom: 20px;
@@ -334,12 +333,12 @@
 
         <button id="btn-slot-p1" class="slot-btn slot-p1" onclick="claimSlot('p1')">
             <span>🎮 STICK 1 (PLAYER 1)</span>
-            <span id="badge-p1" class="status-badge">TERSEDIA</span>
+            <span id="badge-p1" class="status-badge">SIAP TEKAN</span>
         </button>
 
         <button id="btn-slot-p2" class="slot-btn slot-p2" onclick="claimSlot('p2')">
             <span>🎮 STICK 2 (PLAYER 2)</span>
-            <span id="badge-p2" class="status-badge">TERSEDIA</span>
+            <span id="badge-p2" class="status-badge">SIAP TEKAN</span>
         </button>
 
         <p id="slot-error" style="color: #ef4444; margin-top: 15px; font-size: 0.85rem; height: 20px;"></p>
@@ -393,20 +392,11 @@
     </div>
 
     <script>
-        // --- 1. SINKRONISASI JARINGAN (FIREBASE + BROADCAST & LOCALSTORAGE FALLBACK) ---
-        let db = null;
-        try {
-            firebase.initializeApp({ databaseURL: "https://mario-remote-default-rtdb.asia-southeast1.firebasedatabase.app/" });
-            db = firebase.database();
-        } catch(e) {
-            console.log("Database fallback mode aktif.");
-        }
-
-        const localBC = new BroadcastChannel('mario_game_channel');
-
         let currentRoom = "MARIO1";
         let assignedPlayer = null;
-        let isDisplay = false;
+        let peer = null;
+        let connToHost = null;
+        const hostConnections = { p1: null, p2: null };
 
         const inputs = {
             p1: { left: false, right: false, up: false, down: false, action: false },
@@ -429,88 +419,107 @@
             document.getElementById('menu-screen').style.display = 'none';
 
             if(role === 'display') {
-                isDisplay = true;
                 document.getElementById('display-screen').style.display = 'flex';
                 document.getElementById('hud-room').innerText = currentRoom;
                 toggleFullScreen();
+                initHostPeer();
                 initDisplayGame();
             } else {
                 document.body.classList.add('mobile-mode');
                 document.getElementById('slot-screen').style.display = 'flex';
                 document.getElementById('slot-room-display').innerText = currentRoom;
-                listenSlotStatus();
             }
         }
 
-        // Pantau Slot Stick Terisi / Belum
-        function listenSlotStatus() {
-            if (db) {
-                // Timeout Fallback jika Firebase terlambat/offline
-                const timeout = setTimeout(() => {
-                    updateSlotUI({});
-                }, 1500);
+        // --- HOST / LAPTOP PEERJS LOGIC ---
+        function initHostPeer() {
+            // Laptop mendaftarkan ID Peer dengan nama Room
+            peer = new Peer('MARIO_ROOM_' + currentRoom);
 
-                db.ref(`rooms/${currentRoom}/slots`).on('value', snapshot => {
-                    clearTimeout(timeout);
-                    const slots = snapshot.val() || {};
-                    updateSlotUI(slots);
+            peer.on('open', (id) => {
+                console.log('Room Laptop Aktif ID:', id);
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    if(data.type === 'JOIN_REQUEST') {
+                        const targetSlot = data.slot;
+                        if(hostConnections[targetSlot] === null) {
+                            // Slot Masih Kosong
+                            hostConnections[targetSlot] = conn;
+                            conn.send({ type: 'JOIN_RESPONSE', success: true, slot: targetSlot });
+                            updateHUD(targetSlot, true);
+
+                            conn.on('close', () => {
+                                hostConnections[targetSlot] = null;
+                                updateHUD(targetSlot, false);
+                            });
+                        } else {
+                            // Slot Terisi
+                            conn.send({ type: 'JOIN_RESPONSE', success: false, message: 'Slot Stick Sudah Terisi!' });
+                        }
+                    } else if(data.type === 'INPUT') {
+                        if(inputs[data.player]) {
+                            inputs[data.player][data.key] = data.pressed;
+                        }
+                    }
                 });
+            });
+        }
+
+        function updateHUD(slot, connected) {
+            const el = document.getElementById(`${slot}-status`);
+            if(connected) {
+                el.innerText = `${slot.toUpperCase()}: CONNECTED (HP)`;
+                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.8)" : "rgba(22, 163, 74, 0.8)";
+                el.style.color = "#fff";
             } else {
-                updateSlotUI({});
+                el.innerText = `${slot.toUpperCase()}: DISCONNECTED`;
+                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.2)" : "rgba(22, 163, 74, 0.2)";
+                el.style.color = slot === 'p1' ? "#ef4444" : "#22c55e";
             }
         }
 
-        function updateSlotUI(slots) {
-            const btnP1 = document.getElementById('btn-slot-p1');
-            const btnP2 = document.getElementById('btn-slot-p2');
-            const badgeP1 = document.getElementById('badge-p1');
-            const badgeP2 = document.getElementById('badge-p2');
-
-            // Slot 1
-            if (slots.p1 && slots.p1.connected) {
-                btnP1.disabled = true;
-                badgeP1.innerText = "TERISI (FULL)";
-            } else {
-                btnP1.disabled = false;
-                badgeP1.innerText = "TERSEDIA";
-            }
-
-            // Slot 2
-            if (slots.p2 && slots.p2.connected) {
-                btnP2.disabled = true;
-                badgeP2.innerText = "TERISI (FULL)";
-            } else {
-                btnP2.disabled = false;
-                badgeP2.innerText = "TERSEDIA";
-            }
-        }
-
-        // Tombol Pilih Stick 1 / Stick 2 Tekan
+        // --- CLIENT / HP PEERJS LOGIC ---
         function claimSlot(playerSlot) {
             toggleFullScreen();
+            document.getElementById('slot-error').innerText = "Menghubungkan ke Laptop...";
 
-            const enterController = () => {
-                startController(playerSlot);
-            };
+            peer = new Peer(); // Client ID otomatis
 
-            if (db) {
-                const slotRef = db.ref(`rooms/${currentRoom}/slots/${playerSlot}`);
-                slotRef.get().then(snapshot => {
-                    const val = snapshot.val();
-                    if (val && val.connected) {
-                        document.getElementById('slot-error').innerText = `Stick ${playerSlot.toUpperCase()} sudah digunakan HP lain!`;
-                    } else {
-                        slotRef.set({ connected: true, time: Date.now() });
-                        slotRef.onDisconnect().remove();
-                        enterController();
+            peer.on('open', () => {
+                // Hubungkan HP ke Room Laptop
+                const hostId = 'MARIO_ROOM_' + currentRoom;
+                connToHost = peer.connect(hostId);
+
+                connToHost.on('open', () => {
+                    // Minta Masuk ke Slot Stick
+                    connToHost.send({ type: 'JOIN_REQUEST', slot: playerSlot });
+                });
+
+                connToHost.on('data', (data) => {
+                    if(data.type === 'JOIN_RESPONSE') {
+                        if(data.success) {
+                            startController(playerSlot);
+                        } else {
+                            document.getElementById('slot-error').innerText = data.message || "Gagal Terhubung!";
+                            // Nonaktifkan tombol yang terisi
+                            document.getElementById(`btn-slot-${playerSlot}`).disabled = true;
+                            document.getElementById(`badge-${playerSlot}`).innerText = "TERISI";
+                        }
                     }
-                }).catch(() => enterController());
-            } else {
-                enterController();
-            }
+                });
+
+                connToHost.on('error', () => {
+                    document.getElementById('slot-error').innerText = "Laptop belum membuka Mode Display!";
+                });
+            });
+
+            peer.on('error', (err) => {
+                document.getElementById('slot-error').innerText = "Pastikan Kode Room sesuai dengan Laptop!";
+            });
         }
 
-        // --- 2. CONTROLLER STICK HP ---
         function startController(playerSlot) {
             assignedPlayer = playerSlot;
             document.getElementById('slot-screen').style.display = 'none';
@@ -520,26 +529,17 @@
             titleEl.innerText = playerSlot === 'p1' ? '🎮 STICK 1 (MARIO)' : '🎮 STICK 2 (LUIGI)';
             titleEl.style.color = playerSlot === 'p1' ? '#ef4444' : '#22c55e';
 
-            // Beritahu Laptop bahwa HP terkoneksi
-            if(db) {
-                db.ref(`rooms/${currentRoom}/slots/${playerSlot}`).set({ connected: true, time: Date.now() });
-                db.ref(`rooms/${currentRoom}/slots/${playerSlot}`).onDisconnect().remove();
-            }
-
             setupTouchControls();
         }
 
         function sendInputState(key, isPressed) {
-            if(!assignedPlayer) return;
-
-            // 1. Firebase Sync
-            if (db) {
-                db.ref(`rooms/${currentRoom}/inputs/${assignedPlayer}/${key}`).set(isPressed);
-            }
-            // 2. Local Broadcast Channel & Storage Sync
-            const payload = { player: assignedPlayer, key: key, pressed: isPressed, room: currentRoom };
-            localBC.postMessage(payload);
-            localStorage.setItem(`mario_input_${currentRoom}`, JSON.stringify(payload));
+            if(!connToHost) return;
+            connToHost.send({
+                type: 'INPUT',
+                player: assignedPlayer,
+                key: key,
+                pressed: isPressed
+            });
         }
 
         function setupTouchControls() {
@@ -578,62 +578,12 @@
             if (key === 'square' || key === 'circle') sendInputState('action', isPressed);
         }
 
-        // --- 3. DISPLAY GAME (LAPTOP) ---
+        // --- DISPLAY GAME (LAPTOP) ---
         function initDisplayGame() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
 
-            // Firebase Input Listener
-            if(db) {
-                db.ref(`rooms/${currentRoom}/slots`).on('value', snap => {
-                    const slots = snap.val() || {};
-                    const p1El = document.getElementById('p1-status');
-                    const p2El = document.getElementById('p2-status');
-
-                    if(slots.p1 && slots.p1.connected) {
-                        p1El.innerText = "P1: STICK CONNECTED (HP)";
-                        p1El.style.background = "rgba(220, 38, 38, 0.8)";
-                        p1El.style.color = "#fff";
-                    } else {
-                        p1El.innerText = "P1: KEYBOARD (A/D/W)";
-                        p1El.style.background = "rgba(220, 38, 38, 0.2)";
-                        p1El.style.color = "#ef4444";
-                    }
-
-                    if(slots.p2 && slots.p2.connected) {
-                        p2El.innerText = "P2: STICK CONNECTED (HP)";
-                        p2El.style.background = "rgba(22, 163, 74, 0.8)";
-                        p2El.style.color = "#fff";
-                    } else {
-                        p2El.innerText = "P2: KEYBOARD (ARROWS)";
-                        p2El.style.background = "rgba(22, 163, 74, 0.2)";
-                        p2El.style.color = "#22c55e";
-                    }
-                });
-
-                db.ref(`rooms/${currentRoom}/inputs`).on('value', snap => {
-                    const data = snap.val();
-                    if(data) {
-                        if(data.p1) Object.assign(inputs.p1, data.p1);
-                        if(data.p2) Object.assign(inputs.p2, data.p2);
-                    }
-                });
-            }
-
-            // Local Broadcast & Storage Listener
-            localBC.onmessage = (e) => {
-                const { player, key, pressed, room } = e.data;
-                if(room === currentRoom && inputs[player]) inputs[player][key] = pressed;
-            };
-
-            window.addEventListener('storage', (e) => {
-                if(e.key === `mario_input_${currentRoom}`) {
-                    const data = JSON.parse(e.newValue);
-                    if(data && inputs[data.player]) inputs[data.player][data.key] = data.pressed;
-                }
-            });
-
-            // Keyboard Control
+            // Keyboard Control Fallback
             window.addEventListener('keydown', e => {
                 if(e.code === 'KeyA') inputs.p1.left = true;
                 if(e.code === 'KeyD') inputs.p1.right = true;
