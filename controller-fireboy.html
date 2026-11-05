@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controller Fireboy</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #111; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 20px; user-select: none; }
+        h2 { color: #ff4d4d; margin: 5px; }
+        .status { font-size: 14px; margin-bottom: 20px; }
+        .controller { display: grid; grid-template-columns: repeat(3, 90px); grid-template-rows: repeat(2, 90px); gap: 15px; justify-content: center; margin-top: 40px; }
+        .btn { background: #dc3545; color: white; font-size: 22px; font-weight: bold; border: none; border-radius: 15px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px #a71d2a; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .btn:active, .pressed { background: #a71d2a; transform: translateY(4px); box-shadow: 0 1px #6c111a; }
+        .empty { visibility: hidden; }
+    </style>
+</head>
+<body>
+    <h2>🔥 FIREBOY CONTROLLER</h2>
+    <div class="status" id="conn-status">Menghubungkan ke laptop...</div>
+
+    <div class="controller">
+        <div class="empty"></div>
+        <button class="btn" id="btn-up" data-key="ArrowUp">▲</button>
+        <div class="empty"></div>
+        
+        <button class="btn" id="btn-left" data-key="ArrowLeft">◄</button>
+        <button class="btn" id="btn-down" data-key="ArrowDown">▼</button>
+        <button class="btn" id="btn-right" data-key="ArrowRight">►</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostId = urlParams.get('id');
+
+        const peer = new Peer();
+        let conn = null;
+
+        peer.on('open', () => {
+            document.getElementById('conn-status').innerText = "Menghubungkan ke ID: " + hostId;
+            conn = peer.connect(hostId);
+            
+            conn.on('open', () => {
+                document.getElementById('conn-status').innerText = "Terhubung ke Laptop! 🎮✅";
+                document.getElementById('conn-status').style.color = "#28a745";
+            });
+        });
+
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            const key = button.getAttribute('data-key');
+
+            ['touchstart', 'mousedown'].forEach(evt => {
+                button.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    button.classList.add('pressed');
+                    if (conn && conn.open) conn.send({ key: key, action: 'down' });
+                });
+            });
+
+            ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+                button.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    button.classList.remove('pressed');
+                    if (conn && conn.open) conn.send({ key: key, action: 'up' });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
