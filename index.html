@@ -2,10 +2,10 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Super Mario Bros - Web Remote Multiplayer</title>
-    <!-- PubNub SDK untuk Sync Multiplayer di Semua Browser Termasuk iPhone Safari -->
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Seni Rupa Kelas 5 SD - Multi-Device</title>
+    <!-- Library jsPDF untuk Cetak PDF Nilai -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -19,12 +19,12 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #0d1117;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
         }
 
-        /* SCREEN 1: SELECTION MENU */
+        /* SCREEN 1: MENU UTAMA */
         #menu-screen {
             display: flex;
             flex-direction: column;
@@ -32,49 +32,28 @@
             justify-content: center;
             height: 100vh;
             text-align: center;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
             padding: 20px;
         }
         .title {
             font-size: 2.2rem;
-            color: #f59e0b;
-            margin-bottom: 10px;
-            text-shadow: 3px 3px #000;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px #000;
         }
         .subtitle {
-            font-size: 0.95rem;
-            color: #94a3b8;
+            font-size: 1rem;
+            color: #c7d2fe;
             margin-bottom: 25px;
-        }
-        .room-box {
-            background: rgba(255,255,255,0.05);
-            padding: 12px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .room-box input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #fbbf24;
-            padding: 8px 12px;
-            font-size: 1.1rem;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
-            width: 140px;
         }
         .btn-container {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
         }
         .btn-role {
-            padding: 16px 24px;
+            padding: 18px 28px;
             font-size: 1.1rem;
             font-weight: bold;
             border: none;
@@ -85,8 +64,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            min-width: 180px;
+            gap: 6px;
+            min-width: 200px;
         }
         .btn-role:active {
             transform: translateY(3px);
@@ -96,52 +75,56 @@
         .btn-multiplayer { background: #16a34a; color: white; }
         .btn-subtext { font-size: 0.75rem; opacity: 0.8; font-weight: normal; }
 
-        /* SCREEN 2: PILIH SLOT STICK (HP) */
+        /* SCREEN 2: INPUT NAMA & SLOT (HP) */
         #slot-screen {
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: #0f172a;
+            background: #1e1b4b;
             padding: 20px;
+        }
+        .input-box {
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+        .input-box label {
+            font-size: 0.9rem;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .input-box input {
+            padding: 12px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid #6366f1;
+            background: #0f172a;
+            color: white;
+            outline: none;
         }
         .slot-btn {
             width: 100%;
             max-width: 320px;
-            padding: 20px;
-            margin: 10px 0;
-            font-size: 1.2rem;
+            padding: 18px;
+            margin: 8px 0;
+            font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 15px;
+            border-radius: 12px;
             border: none;
             cursor: pointer;
-            box-shadow: 0 5px 0 rgba(0,0,0,0.5);
-            transition: all 0.15s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .slot-btn:active:not(:disabled) {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
         }
         .slot-p1 { background: #dc2626; color: white; }
         .slot-p2 { background: #16a34a; color: white; }
-        .slot-btn:disabled {
-            background: #475569 !important;
-            color: #94a3b8 !important;
-            cursor: not-allowed;
-            box-shadow: none;
-            opacity: 0.6;
-        }
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: rgba(0,0,0,0.3);
-        }
 
         /* SCREEN 3: DISPLAY LAPTOP */
         #display-screen {
@@ -152,30 +135,40 @@
             background: #000;
         }
         .hud-bar {
-            height: 48px;
-            background: #111827;
+            height: 50px;
+            background: #1e1b4b;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
             font-size: 0.85rem;
-            border-bottom: 2px solid #1f2937;
+            border-bottom: 2px solid #4338ca;
             z-index: 10;
         }
         .hud-status { display: flex; gap: 15px; }
         .player-tag { padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
-        .p1-tag { background: rgba(220, 38, 38, 0.2); color: #ef4444; border: 1px solid #ef4444; }
-        .p2-tag { background: rgba(22, 163, 74, 0.2); color: #22c55e; border: 1px solid #22c55e; }
-        
+        .p1-tag { background: rgba(220, 38, 38, 0.3); color: #fca5a5; border: 1px solid #ef4444; }
+        .p2-tag { background: rgba(22, 163, 74, 0.3); color: #86efac; border: 1px solid #22c55e; }
+        .btn-pdf {
+            background: #d97706;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
         #canvas-wrapper {
             flex: 1;
             width: 100%;
-            height: calc(100vh - 48px);
+            height: calc(100vh - 50px);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: #5c94fc;
+            background: #312e81;
             position: relative;
         }
         canvas {
@@ -183,15 +176,14 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            image-rendering: pixelated;
         }
 
-        /* SCREEN 4: HP CONTROLLER STICK */
+        /* SCREEN 4: HP CONTROLLER STICK LANDSCAPE */
         #controller-screen {
             display: none;
             width: 100vw;
             height: 100vh;
-            background: #18181b;
+            background: #0f172a;
             position: relative;
             touch-action: none;
             overflow: hidden;
@@ -202,51 +194,43 @@
             left: 50%;
             transform: translateX(-50%);
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             background: rgba(0,0,0,0.6);
             padding: 6px 16px;
             border-radius: 20px;
             z-index: 20;
-            display: flex;
-            gap: 12px;
-            align-items: center;
         }
         
         /* D-PAD LANDSCAPE */
         .dpad-container {
             position: absolute;
-            bottom: 25px;
-            left: 25px;
+            bottom: 20px;
+            left: 20px;
             width: 160px;
             height: 160px;
         }
         .dpad-btn {
             position: absolute;
-            background: #3f3f46;
-            border: 2px solid #52525b;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            background: #334155;
+            border: 2px solid #475569;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
-            color: #e4e4e7;
+            color: #f8fafc;
             border-radius: 8px;
         }
-        .dpad-btn:active, .dpad-btn.active {
-            background: #71717a;
-            border-color: #a1a1aa;
-        }
+        .dpad-btn:active, .dpad-btn.active { background: #64748b; }
         .dpad-up    { top: 0; left: 52px; width: 56px; height: 55px; }
         .dpad-down  { bottom: 0; left: 52px; width: 56px; height: 55px; }
         .dpad-left  { top: 52px; left: 0; width: 55px; height: 56px; }
         .dpad-right { top: 52px; right: 0; width: 55px; height: 56px; }
-        .dpad-center{ top: 52px; left: 52px; width: 56px; height: 56px; background: #27272a; border: none; }
 
         /* ACTION BUTTONS */
         .action-container {
             position: absolute;
-            bottom: 25px;
-            right: 25px;
+            bottom: 20px;
+            right: 20px;
             width: 160px;
             height: 160px;
         }
@@ -261,19 +245,15 @@
             justify-content: center;
             font-weight: bold;
             font-size: 1.1rem;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.4);
             color: white;
         }
-        .act-btn:active, .act-btn.active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
-        }
+        .act-btn:active, .act-btn.active { transform: translateY(3px); }
         .btn-triangle { top: 0; left: 54px; background: #10b981; }
         .btn-square   { top: 54px; left: 0; background: #ec4899; }
         .btn-circle   { top: 54px; right: 0; background: #ef4444; }
         .btn-cross    { bottom: 0; left: 54px; background: #3b82f6; }
 
-        /* ORIENTATION WARNING */
         #orientation-warning {
             display: none;
             position: fixed;
@@ -287,9 +267,7 @@
             padding: 20px;
         }
         @media (max-width: 768px) and (orientation: portrait) {
-            .mobile-mode #orientation-warning {
-                display: flex;
-            }
+            .mobile-mode #orientation-warning { display: flex; }
         }
     </style>
 </head>
@@ -297,18 +275,13 @@
 
     <!-- SCREEN 1: MENU UTAMA -->
     <div id="menu-screen">
-        <h1 class="title">SUPER MARIO BROS</h1>
-        <p class="subtitle">Multi-Device Remote Web Controller (iOS Compatible)</p>
-        
-        <div class="room-box">
-            <label for="room-id">Kode Room:</label>
-            <input type="text" id="room-id" value="MARIO1" maxlength="8">
-        </div>
+        <h1 class="title">🎨 PETUALANGAN SENI RUPA SD</h1>
+        <p class="subtitle">Game Edukasi Seni Rupa Kelas 5 SD Multi-Player</p>
 
         <div class="btn-container">
             <button class="btn-role btn-display" onclick="selectRole('display')">
                 💻 TOMBOL DISPLAY
-                <span class="btn-subtext">(Untuk Layar Laptop)</span>
+                <span class="btn-subtext">(Untuk Layar Utama Laptop)</span>
             </button>
             <button class="btn-role btn-multiplayer" onclick="selectRole('multiplayer')">
                 📱 MULTIPLAYER
@@ -317,39 +290,40 @@
         </div>
     </div>
 
-    <!-- SCREEN 2: PILIH SLOT STICK (HP) -->
+    <!-- SCREEN 2: INPUT NAMA & SLOT (HP) -->
     <div id="slot-screen">
-        <h2 style="margin-bottom: 5px; color: #f59e0b;">PILIH STICK PLAYER</h2>
-        <p style="color: #94a3b8; margin-bottom: 20px; font-size: 0.85rem;">Room: <span id="slot-room-display" style="color:white; font-weight:bold;"></span></p>
+        <h2 style="margin-bottom: 15px; color: #fbbf24;">MASUKKAN DATA SISWA</h2>
+        
+        <div class="input-box">
+            <label for="player-name">Nama Siswa / Kelompok:</label>
+            <input type="text" id="player-name" placeholder="Contoh: Budi / Kelompok 1" maxlength="20">
+        </div>
 
         <button id="btn-slot-p1" class="slot-btn slot-p1" onclick="claimSlot('p1')">
-            <span>🎮 STICK 1 (PLAYER 1)</span>
-            <span id="badge-p1" class="status-badge">TERSEDIA</span>
+            <span>🎮 STICK 1 (SISWA 1)</span>
         </button>
 
         <button id="btn-slot-p2" class="slot-btn slot-p2" onclick="claimSlot('p2')">
-            <span>🎮 STICK 2 (PLAYER 2)</span>
-            <span id="badge-p2" class="status-badge">TERSEDIA</span>
+            <span>🎮 STICK 2 (SISWA 2)</span>
         </button>
-
-        <p id="slot-error" style="color: #ef4444; margin-top: 15px; font-size: 0.85rem; height: 20px;"></p>
     </div>
 
-    <!-- SCREEN 3: DISPLAY GAME (LAPTOP) -->
+    <!-- SCREEN 3: DISPLAY LAPTOP -->
     <div id="display-screen">
         <div class="hud-bar">
-            <div>ROOM: <span id="hud-room" style="color: #f59e0b; font-weight: bold;"></span></div>
+            <div style="font-weight: bold; color: #fbbf24;">SENI RUPA KELAS 5 SD</div>
             <div class="hud-status">
-                <div id="p1-status" class="player-tag p1-tag">P1: DISCONNECTED</div>
-                <div id="p2-status" class="player-tag p2-tag">P2: DISCONNECTED</div>
+                <div id="p1-status" class="player-tag p1-tag">P1: MENUNGGU HP...</div>
+                <div id="p2-status" class="player-tag p2-tag">P2: MENUNGGU HP...</div>
             </div>
+            <button class="btn-pdf" onclick="downloadPDFResults()">📥 Download Nilai (PDF)</button>
         </div>
         <div id="canvas-wrapper">
             <canvas id="gameCanvas" width="800" height="450"></canvas>
         </div>
     </div>
 
-    <!-- SCREEN 4: CONTROLLER STICK (HP) -->
+    <!-- SCREEN 4: HP CONTROLLER STICK -->
     <div id="controller-screen">
         <div class="controller-header">
             <span id="stick-title">STICK PLAYER</span>
@@ -359,7 +333,6 @@
         <div class="dpad-container">
             <div class="dpad-btn dpad-up" data-key="up">▲</div>
             <div class="dpad-btn dpad-left" data-key="left">◀</div>
-            <div class="dpad-btn dpad-center"></div>
             <div class="dpad-btn dpad-right" data-key="right">▶</div>
             <div class="dpad-btn dpad-down" data-key="down">▼</div>
         </div>
@@ -377,123 +350,71 @@
     <div id="orientation-warning">
         <div style="font-size: 3rem; margin-bottom: 10px;">🔄</div>
         <h3>MOHON PUTAR HP KE LANDSCAPE</h3>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px;">Pegang HP secara mendatar untuk menggunakan stick.</p>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px;">Pegang HP secara mendatar untuk mengendalikan karakter.</p>
     </div>
 
     <script>
-        // Init PubNub Service
-        const pubnub = new PubNub({
-            subscribeKey: 'sub-c-5e4c4146-28ce-4122-b258-0bc9e36ebff5',
-            publishKey: 'pub-c-4c609f3e-4b77-4a0f-a3ff-2a1e3597d5a5',
-            uuid: 'user_' + Math.random().toString(36).substring(2, 9)
-        });
+        // --- 1. SINKRONISASI LOKAL TANPA DATABASE ---
+        const localBC = new BroadcastChannel('seni_rupa_game');
 
-        let currentRoom = "MARIO1";
         let assignedPlayer = null;
-        let isDisplay = false;
-        const slotOccupied = { p1: false, p2: false };
+        let p1Name = "Siswa 1";
+        let p2Name = "Siswa 2";
 
         const inputs = {
-            p1: { left: false, right: false, up: false, down: false, action: false },
-            p2: { left: false, right: false, up: false, down: false, action: false }
+            p1: { left: false, right: false, up: false, down: false },
+            p2: { left: false, right: false, up: false, down: false }
         };
 
         function selectRole(role) {
-            const roomInput = document.getElementById('room-id').value.trim().toUpperCase();
-            if(!roomInput) return alert("Masukkan Kode Room!");
-            currentRoom = roomInput;
-
             document.getElementById('menu-screen').style.display = 'none';
 
-            // Subscribe channel room
-            pubnub.subscribe({ channels: ['mario_room_' + currentRoom] });
-
             if(role === 'display') {
-                isDisplay = true;
                 document.getElementById('display-screen').style.display = 'flex';
-                document.getElementById('hud-room').innerText = currentRoom;
                 initDisplayGame();
             } else {
                 document.body.classList.add('mobile-mode');
                 document.getElementById('slot-screen').style.display = 'flex';
-                document.getElementById('slot-room-display').innerText = currentRoom;
-            }
-
-            // Dengar Pesan Sinkronisasi
-            pubnub.addListener({
-                message: function(event) {
-                    const msg = event.message;
-
-                    // Jika pesan berupa Input Kontrol
-                    if(msg.type === 'INPUT' && isDisplay) {
-                        if(inputs[msg.player]) {
-                            inputs[msg.player][msg.key] = msg.pressed;
-                        }
-                    }
-
-                    // Status Klaim Slot
-                    if(msg.type === 'CLAIM_SLOT') {
-                        slotOccupied[msg.slot] = true;
-                        updateSlotUI();
-                        if(isDisplay) updateHUD(msg.slot, true);
-                    }
-                }
-            });
-        }
-
-        function updateSlotUI() {
-            if(slotOccupied.p1) {
-                document.getElementById('btn-slot-p1').disabled = true;
-                document.getElementById('badge-p1').innerText = "TERISI";
-            }
-            if(slotOccupied.p2) {
-                document.getElementById('btn-slot-p2').disabled = true;
-                document.getElementById('badge-p2').innerText = "TERISI";
             }
         }
 
-        function claimSlot(playerSlot) {
-            if(slotOccupied[playerSlot]) {
-                document.getElementById('slot-error').innerText = `Stick ${playerSlot.toUpperCase()} sudah terisi!`;
-                return;
-            }
+        // --- 2. KONTROLER HP & INPUT NAMA MANUAL ---
+        function claimSlot(slot) {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if(!nameInput) return alert("Silakan masukkan nama siswa terlebih dahulu!");
 
-            assignedPlayer = playerSlot;
-            pubnub.publish({
-                channel: 'mario_room_' + currentRoom,
-                message: { type: 'CLAIM_SLOT', slot: playerSlot }
+            assignedPlayer = slot;
+            const playerName = nameInput;
+
+            // Kirim event pendaftaran nama ke Laptop
+            localBC.postMessage({
+                type: 'REGISTER_PLAYER',
+                slot: slot,
+                name: playerName
             });
 
-            startController(playerSlot);
-        }
-
-        function startController(playerSlot) {
             document.getElementById('slot-screen').style.display = 'none';
             document.getElementById('controller-screen').style.display = 'block';
-            
+
             const titleEl = document.getElementById('stick-title');
-            titleEl.innerText = playerSlot === 'p1' ? '🎮 STICK 1 (MARIO)' : '🎮 STICK 2 (LUIGI)';
-            titleEl.style.color = playerSlot === 'p1' ? '#ef4444' : '#22c55e';
+            titleEl.innerText = `${slot.toUpperCase()} - ${playerName}`;
+            titleEl.style.color = slot === 'p1' ? '#ef4444' : '#22c55e';
 
             setupTouchControls();
         }
 
         function sendInputState(key, isPressed) {
             if(!assignedPlayer) return;
-            pubnub.publish({
-                channel: 'mario_room_' + currentRoom,
-                message: {
-                    type: 'INPUT',
-                    player: assignedPlayer,
-                    key: key,
-                    pressed: isPressed
-                }
+            localBC.postMessage({
+                type: 'INPUT',
+                player: assignedPlayer,
+                key: key,
+                pressed: isPressed
             });
         }
 
         function setupTouchControls() {
             const buttons = document.querySelectorAll('.dpad-btn, .act-btn');
-
             buttons.forEach(btn => {
                 const key = btn.getAttribute('data-key');
                 if(!key) return;
@@ -522,23 +443,39 @@
             if (key === 'left') sendInputState('left', isPressed);
             if (key === 'right') sendInputState('right', isPressed);
             if (key === 'up' || key === 'cross' || key === 'triangle') sendInputState('up', isPressed);
-            if (key === 'square' || key === 'circle') sendInputState('action', isPressed);
         }
 
-        function updateHUD(slot, connected) {
-            const el = document.getElementById(`${slot}-status`);
-            if(connected) {
-                el.innerText = `${slot.toUpperCase()}: CONNECTED (HP)`;
-                el.style.background = slot === 'p1' ? "rgba(220, 38, 38, 0.8)" : "rgba(22, 163, 74, 0.8)";
-                el.style.color = "#fff";
-            }
-        }
+        // --- 3. ENGINE GAME SENI RUPA (LAPTOP) ---
+        let gameP1, gameP2;
 
-        // --- DISPLAY GAME (LAPTOP) ---
         function initDisplayGame() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
 
+            localBC.onmessage = (e) => {
+                const data = e.data;
+                if(data.type === 'REGISTER_PLAYER') {
+                    if(data.slot === 'p1') {
+                        p1Name = data.name;
+                        gameP1.name = data.name;
+                        const el = document.getElementById('p1-status');
+                        el.innerText = `P1: ${data.name} (CONNECTED)`;
+                        el.style.background = "rgba(220, 38, 38, 0.8)";
+                        el.style.color = "#fff";
+                    } else if(data.slot === 'p2') {
+                        p2Name = data.name;
+                        gameP2.name = data.name;
+                        const el = document.getElementById('p2-status');
+                        el.innerText = `P2: ${data.name} (CONNECTED)`;
+                        el.style.background = "rgba(22, 163, 74, 0.8)";
+                        el.style.color = "#fff";
+                    }
+                } else if(data.type === 'INPUT') {
+                    if(inputs[data.player]) inputs[data.player][data.key] = data.pressed;
+                }
+            };
+
+            // Keyboard Control Laptop Fallback
             window.addEventListener('keydown', e => {
                 if(e.code === 'KeyA') inputs.p1.left = true;
                 if(e.code === 'KeyD') inputs.p1.right = true;
@@ -620,111 +557,148 @@
                     ctx.fillRect(this.x - cameraX + 4, this.y + 4, 16, 6);
 
                     ctx.fillStyle = '#fff';
-                    ctx.font = '10px Courier New';
-                    ctx.fillText(this.name, this.x - cameraX - 2, this.y - 6);
+                    ctx.font = 'bold 11px Arial';
+                    ctx.fillText(this.name, this.x - cameraX - 4, this.y - 6);
                 }
             }
 
-            const p1 = new Player(50, '#ef4444', 'MARIO');
-            const p2 = new Player(90, '#22c55e', 'LUIGI');
+            gameP1 = new Player(50, '#ef4444', p1Name);
+            gameP2 = new Player(90, '#22c55e', p2Name);
 
             const platforms = [
                 { x: 0, y: 380, w: 700, h: 70 },
-                { x: 250, y: 280, w: 100, h: 20, type: 'block' },
-                { x: 400, y: 220, w: 80, h: 20, type: 'block' },
+                { x: 250, y: 280, w: 100, h: 20 },
+                { x: 400, y: 220, w: 100, h: 20 },
                 { x: 800, y: 380, w: 600, h: 70 },
-                { x: 950, y: 270, w: 120, h: 20, type: 'block' },
-                { x: 1500, y: 380, w: 800, h: 70 },
-                { x: 2100, y: 150, w: 40, h: 230, type: 'flag' }
+                { x: 950, y: 270, w: 120, h: 20 },
+                { x: 1500, y: 380, w: 800, h: 70 }
             ];
 
-            const enemies = [
-                { x: 450, y: 356, w: 24, h: 24, vx: -1, alive: true },
-                { x: 1050, y: 356, w: 24, h: 24, vx: -1.2, alive: true }
+            // Item Karya Seni Rupa (Elemen Warna, Bentuk, Kuas)
+            const artItems = [
+                { x: 270, y: 240, type: '🎨 Warna Primer', points: 20, collected: false },
+                { x: 420, y: 180, type: '📐 Prinsip Proporsi', points: 25, collected: false },
+                { x: 980, y: 230, type: '🖼️ Seni Anyaman', points: 30, collected: false },
+                { x: 1100, y: 340, type: '✏️ Ragam Hias', points: 25, collected: false }
             ];
 
             let cameraX = 0;
 
             function gameLoop() {
-                p1.update(inputs.p1, platforms);
-                p2.update(inputs.p2, platforms);
+                gameP1.update(inputs.p1, platforms);
+                gameP2.update(inputs.p2, platforms);
 
-                for(let e of enemies) {
-                    if(!e.alive) continue;
-                    e.x += e.vx;
-                    if(e.x < 350 || e.x > 680) e.vx *= -1;
-
-                    [p1, p2].forEach(p => {
-                        if (p.x < e.x + e.w && p.x + p.width > e.x &&
-                            p.y < e.y + e.h && p.y + p.height > e.y) {
-                            if (p.vy > 0 && p.y + p.height - p.vy <= e.y + 10) {
-                                e.alive = false;
-                                p.vy = -6;
-                                p.score += 200;
-                            } else {
-                                p.respawn();
-                            }
+                // Ambil Item Seni Rupa
+                for(let item of artItems) {
+                    if(item.collected) continue;
+                    [gameP1, gameP2].forEach(p => {
+                        if (p.x < item.x + 20 && p.x + p.width > item.x &&
+                            p.y < item.y + 20 && p.y + p.height > item.y) {
+                            item.collected = true;
+                            p.score += item.points;
                         }
                     });
                 }
 
-                const targetCamX = Math.max(0, Math.max(p1.x, p2.x) - 300);
+                const targetCamX = Math.max(0, Math.max(gameP1.x, gameP2.x) - 300);
                 cameraX += (targetCamX - cameraX) * 0.1;
 
-                ctx.fillStyle = '#5c94fc';
+                // Render Background & Dunia Game
+                ctx.fillStyle = '#312e81';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.beginPath();
-                ctx.arc(200 - cameraX * 0.2, 80, 30, 0, Math.PI * 2);
-                ctx.arc(230 - cameraX * 0.2, 70, 40, 0, Math.PI * 2);
-                ctx.arc(260 - cameraX * 0.2, 80, 30, 0, Math.PI * 2);
-                ctx.fill();
-
+                // Platform
                 for (let p of platforms) {
-                    if(p.type === 'block') {
-                        ctx.fillStyle = '#b45309';
-                        ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-                        ctx.strokeStyle = '#78350f';
-                        ctx.strokeRect(p.x - cameraX, p.y, p.w, p.h);
-                    } else if(p.type === 'flag') {
-                        ctx.fillStyle = '#cbd5e1';
-                        ctx.fillRect(p.x - cameraX, p.y, 8, p.h);
-                        ctx.fillStyle = '#ef4444';
-                        ctx.beginPath();
-                        ctx.moveTo(p.x - cameraX + 8, p.y);
-                        ctx.lineTo(p.x - cameraX + 40, p.y + 15);
-                        ctx.lineTo(p.x - cameraX + 8, p.y + 30);
-                        ctx.fill();
-                    } else {
-                        ctx.fillStyle = '#15803d';
-                        ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
-                        ctx.fillStyle = '#86efac';
-                        ctx.fillRect(p.x - cameraX, p.y, p.w, 8);
-                    }
+                    ctx.fillStyle = '#4338ca';
+                    ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
+                    ctx.fillStyle = '#6366f1';
+                    ctx.fillRect(p.x - cameraX, p.y, p.w, 6);
                 }
 
-                for(let e of enemies) {
-                    if(!e.alive) continue;
-                    ctx.fillStyle = '#78350f';
-                    ctx.fillRect(e.x - cameraX, e.y, e.w, e.h);
+                // Render Item
+                for (let item of artItems) {
+                    if(item.collected) continue;
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.beginPath();
+                    ctx.arc(item.x - cameraX + 10, item.y + 10, 10, 0, Math.PI * 2);
+                    ctx.fill();
+
                     ctx.fillStyle = '#fff';
-                    ctx.fillRect(e.x - cameraX + 4, e.y + 4, 4, 4);
-                    ctx.fillRect(e.x - cameraX + 14, e.y + 4, 4, 4);
+                    ctx.font = '10px Arial';
+                    ctx.fillText(item.type, item.x - cameraX - 15, item.y - 5);
                 }
 
-                p1.draw(ctx, cameraX);
-                p2.draw(ctx, cameraX);
+                // Render Player
+                gameP1.draw(ctx, cameraX);
+                gameP2.draw(ctx, cameraX);
 
+                // Score HUD Top
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 14px Courier New';
-                ctx.fillText(`MARIO P1 - SCORE: ${p1.score} LIVES: ${'❤️'.repeat(Math.max(0, p1.lives))}`, 20, 30);
-                ctx.fillText(`LUIGI P2 - SCORE: ${p2.score} LIVES: ${'❤️'.repeat(Math.max(0, p2.lives))}`, 480, 30);
+                ctx.font = 'bold 13px Arial';
+                ctx.fillText(`${gameP1.name}: ${gameP1.score} Poin | Nyawa: ${'❤️'.repeat(Math.max(0, gameP1.lives))}`, 20, 30);
+                ctx.fillText(`${gameP2.name}: ${gameP2.score} Poin | Nyawa: ${'❤️'.repeat(Math.max(0, gameP2.lives))}`, 480, 30);
 
                 requestAnimationFrame(gameLoop);
             }
 
             gameLoop();
+        }
+
+        // --- 4. EXPORT LAPORAN HASIL NILAI KE PDF ---
+        function downloadPDFResults() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const p1FinalScore = gameP1 ? Math.min(100, gameP1.score) : 0;
+            const p2FinalScore = gameP2 ? Math.min(100, gameP2.score) : 0;
+
+            // Judul PDF
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("REKAP NILAI GAME SENI RUPA KELAS 5 SD", 105, 20, { align: "center" });
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Tanggal Ujian / Main: ${new Date().toLocaleDateString('id-ID')}`, 105, 28, { align: "center" });
+            doc.line(20, 32, 190, 32);
+
+            // Tabel Nilai
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Hasil Penilaian Siswa:", 20, 45);
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+
+            // Header Tabel
+            doc.setFillColor(230, 230, 230);
+            doc.rect(20, 50, 170, 8, 'F');
+            doc.text("No", 25, 56);
+            doc.text("Nama Siswa / Player", 45, 56);
+            doc.text("Nilai Akhir", 115, 56);
+            doc.text("Status Kelulusan", 150, 56);
+
+            // Baris Player 1
+            doc.text("1", 25, 68);
+            doc.text(p1Name, 45, 68);
+            doc.text(`${p1FinalScore} / 100`, 115, 68);
+            doc.text(p1FinalScore >= 70 ? "LULUS (KKM)" : "REMIDI", 150, 68);
+
+            // Baris Player 2
+            doc.text("2", 25, 78);
+            doc.text(p2Name, 45, 78);
+            doc.text(`${p2FinalScore} / 100`, 115, 78);
+            doc.text(p2FinalScore >= 70 ? "LULUS (KKM)" : "REMIDI", 150, 78);
+
+            doc.line(20, 85, 190, 85);
+
+            // Catatan Guru
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.text("* Nilai dihitung berdasarkan pengumpulan materi Seni Rupa & ketahanan nyawa karakter.", 20, 95);
+
+            // Simpan PDF
+            doc.save(`Nilai_Seni_Rupa_Kelas5_${Date.now()}.pdf`);
         }
     </script>
 </body>
