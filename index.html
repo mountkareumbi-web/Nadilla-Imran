@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Labirin Kooperatif Multi-Device (12 Level)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PeerJS untuk koneksi real-time antar HP & Laptop via WebRTC -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+        canvas {
+            image-rendering: pixelated;
+            background-color: #1e293b;
+        }
+        /* Custom controller styling */
+        .btn-dpad {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            box-shadow: 4px 4px 10px #0f172a, -2px -2px 6px #475569;
+        }
+        .btn-dpad:active {
+            background: #0284c7;
+            box-shadow: inset 2px 2px 5px #0f172a;
+        }
+        .bg-glass {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-center items-center relative overflow-hidden bg-slate-900 text-white">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="w-full h-full flex flex-col justify-center items-center">
+
+        <!-- ================= 1. MENU PERAN / ROLE SELECTOR ================= -->
+        <div id="screen-role" class="flex flex-col items-center justify-center p-6 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 max-w-md w-11/12 z-20">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-blue-400 mb-2 text-center">
+                LABIRIN KOOPERATIF
+            </h1>
+            <p class="text-xs md:text-sm text-slate-400 mb-6 text-center">
+                Pilih peran perangkat ini untuk memulai permainan (Laptop / HP)
+            </p>
+
+            <div class="flex flex-col gap-3 w-full">
+                <!-- Button Laptop (Display Screen) -->
+                <button onclick="selectRole('display')" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold flex items-center justify-between shadow-lg transition-transform active:scale-95">
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-desktop text-xl"></i>
+                        <span>Layar Utama (Laptop / Display)</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <!-- Button HP Stick 1 -->
+                <button id="btn-role-p1" onclick="selectRole('controller1')" class="w-full py-3.5 px-4 bg-red-600 hover:bg-red-500 rounded-xl font-bold flex items-center justify-between shadow-lg transition-transform active:scale-95">
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-mobile-screen-button text-xl"></i>
+                        <span>Stik Player 1 (HP Merah)</span>
+                    </span>
+                    <span id="badge-p1" class="text-xs bg-red-900/80 text-red-200 px-2 py-1 rounded">Bebas</span>
+                </button>
+
+                <!-- Button HP Stick 2 -->
+                <button id="btn-role-p2" onclick="selectRole('controller2')" class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold flex items-center justify-between shadow-lg transition-transform active:scale-95">
+                    <span class="flex items-center gap-3">
+                        <i class="fa-solid fa-mobile-screen-button text-xl"></i>
+                        <span>Stik Player 2 (HP Biru)</span>
+                    </span>
+                    <span id="badge-p2" class="text-xs bg-blue-900/80 text-blue-200 px-2 py-1 rounded">Bebas</span>
+                </button>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-700 w-full text-center">
+                <p class="text-xs text-slate-400">
+                    Mode Pengujian Lokal: Laptop dapat dimainkan langsung menggunakan tombol Keyboard (WASD & Panah).
+                </p>
+            </div>
+        </div>
+
+        <!-- ================= 2. LAPTOP / DISPLAY SCREEN ================= -->
+        <div id="screen-display" class="hidden w-full h-full flex flex-col items-center justify-between p-2 relative">
+            <!-- Header Status Bar -->
+            <div class="w-full max-w-5xl flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700 backdrop-blur z-10">
+                <div class="flex items-center gap-4">
+                    <span class="text-lg font-bold text-amber-400" id="level-title">LEVEL 1</span>
+                    <span class="text-xs px-2 py-1 bg-slate-700 rounded text-slate-300">Room Code: <b id="room-code-display" class="text-emerald-400 tracking-widest text-sm">----</b></span>
+                </div>
+                <!-- Status Koneksi Player -->
+                <div class="flex gap-4 text-xs font-semibold">
+                    <div id="status-p1-display" class="flex items-center gap-1.5 text-red-400 bg-red-950/50 px-2.5 py-1 rounded border border-red-800/50">
+                        <i class="fa-solid fa-[#circle] text-[8px] animate-pulse"></i> P1: Terputus
+                    </div>
+                    <div id="status-p2-display" class="flex items-center gap-1.5 text-blue-400 bg-blue-950/50 px-2.5 py-1 rounded border border-blue-800/50">
+                        <i class="fa-solid fa-[#circle] text-[8px] animate-pulse"></i> P2: Terputus
+                    </div>
+                </div>
+                <button onclick="resetCurrentLevel()" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-xs rounded font-bold transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset Level
+                </button>
+            </div>
+
+            <!-- Canvas Display Game -->
+            <div class="flex-1 w-full max-w-5xl my-2 flex items-center justify-center relative overflow-hidden rounded-xl border-2 border-slate-700 shadow-2xl">
+                <canvas id="gameCanvas" class="w-full h-full object-contain"></canvas>
+            </div>
+
+            <!-- On-Screen Keyboard Instructions / Controller Help -->
+            <div class="w-full max-w-5xl bg-slate-800/50 p-2 rounded-lg text-center text-xs text-slate-400 flex justify-around">
+                <span><b class="text-red-400">P1 (Merah):</b> W/A/S/D atau HP Stick 1</span>
+                <span><b class="text-blue-400">P2 (Biru):</b> Panah Atas/Kiri/Bawah/Kanan atau HP Stick 2</span>
+            </div>
+        </div>
+
+        <!-- ================= 3. CONTROLLER JOIN SCREEN (HP) ================= -->
+        <div id="screen-controller-join" class="hidden flex flex-col items-center justify-center p-6 bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-11/12">
+            <h2 id="controller-role-title" class="text-xl font-bold mb-2">Stik Player</h2>
+            <p class="text-xs text-slate-400 mb-4 text-center">Masukkan Kode Room 4-Digit yang tampil di layar Laptop Utama:</p>
+
+            <input type="text" id="input-room-code" maxlength="4" placeholder="Contoh: 1234" class="w-full text-center text-2xl font-mono tracking-widest py-3 bg-slate-900 border-2 border-slate-600 rounded-xl mb-4 text-white uppercase focus:outline-none focus:border-emerald-500">
+
+            <button onclick="connectControllerToRoom()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold shadow-lg text-sm">
+                Hubungkan ke Laptop
+            </button>
+            <button onclick="backToRoleSelect()" class="mt-3 text-xs text-slate-400 underline">
+                Kembali
+            </button>
+        </div>
+
+        <!-- ================= 4. GAMEPAD / CONTROLLER SCREEN (HP) ================= -->
+        <div id="screen-controller-active" class="hidden w-full h-full flex flex-col justify-between p-6 select-none">
+            <!-- Header Stick Info -->
+            <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <div class="flex items-center gap-2">
+                    <div id="controller-indicator" class="w-4 h-4 rounded-full bg-red-500"></div>
+                    <span id="controller-player-name" class="font-bold">Player 1</span>
+                </div>
+                <span id="controller-conn-status" class="text-xs bg-emerald-900 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-600">Terhubung</span>
+            </div>
+
+            <!-- Virtual D-PAD / Joystick GUI -->
+            <div class="flex-1 flex items-center justify-center py-8">
+                <div class="relative w-64 h-64 grid grid-cols-3 grid-rows-3 gap-2 p-2 bg-slate-800/50 rounded-full border border-slate-700 shadow-2xl">
+                    <!-- UP -->
+                    <button id="btn-up" class="col-start-2 row-start-1 btn-dpad rounded-t-2xl flex items-center justify-center text-2xl active:bg-slate-600">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <!-- LEFT -->
+                    <button id="btn-left" class="col-start-1 row-start-2 btn-dpad rounded-l-2xl flex items-center justify-center text-2xl active:bg-slate-600">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <!-- CENTER / DECORATION -->
+                    <div class="col-start-2 row-start-2 bg-slate-900 rounded-full flex items-center justify-center border border-slate-700">
+                        <i class="fa-solid fa-gamepad text-slate-600 text-xl"></i>
+                    </div>
+                    <!-- RIGHT -->
+                    <button id="btn-right" class="col-start-3 row-start-2 btn-dpad rounded-r-2xl flex items-center justify-center text-2xl active:bg-slate-600">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <!-- DOWN -->
+                    <button id="btn-down" class="col-start-2 row-start-3 btn-dpad rounded-b-2xl flex items-center justify-center text-2xl active:bg-slate-600">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-center text-xs text-slate-500">Gunakan tombol arah untuk menggerakkan Karakter Stickman di Layar Laptop</p>
+        </div>
+
+        <!-- ================= 5. POPUP NOTIFIKASI / MODAL ================= -->
+        <div id="modal-notif" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+                <div id="modal-icon" class="text-4xl text-amber-400 mb-3">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 id="modal-title" class="text-lg font-bold mb-2">Pemberitahuan</h3>
+                <p id="modal-msg" class="text-sm text-slate-300 mb-6">Pesan pemberitahuan...</p>
+                <button onclick="closeModal()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 font-bold rounded-xl text-sm transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN JAVASCRIPT GAME LOGIC -->
+    <script>
+        /* ==========================================================================
+           1. SYNTH AUDIO SYSTEM (Web Audio API - Direct Pure Sound Effects)
+           ========================================================================== */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playTone(freq, duration, type='sine', gainVal=0.1) {
+                if (!this.ctx) return;
+                try {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+            step() { this.playTone(150 + Math.random()*50, 0.05, 'triangle', 0.03); }
+            buttonPress() { this.playTone(523.25, 0.1, 'sine', 0.15); }
+            doorOpen() { 
+                this.playTone(300, 0.15, 'sawtooth', 0.08); 
+                setTimeout(() => this.playTone(450, 0.2, 'sine', 0.08), 100);
+            }
+            boxPush() { this.playTone(80, 0.08, 'square', 0.04); }
+            win() {
+                let notes = [261.63, 329.63, 392.00, 523.25];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 0.3, 'triangle', 0.2), idx * 120);
+                });
+            }
+        }
+        const sfx = new SoundFX();
+
+        /* ==========================================================================
+           2. GLOBAL GAME STATE & LEVEL DESIGN
+           ========================================================================== */
+        let currentRole = null; // 'display', 'controller1', 'controller2'
+        let peer = null;
+        let roomCode = "";
+        let connections = { p1: null, p2: null };
+        let activeKeys = { p1: {up:false, down:false, left:false, right:false}, p2: {up:false, down:false, left:false, right:false} };
+
+        // Grid Cell Specs
+        const GRID_W = 16;
+        const GRID_H = 12;
+        let CELL_SIZE = 40;
+
+        let currentLevelIndex = 0;
+        let gameObjects = {
+            players: [],
+            walls: [],
+            doors: [],    // {x, y, color, reqSwitchId, isOpen}
+            switches: [], // {id, x, y, color, isPressed}
+            boxes: [],    // {x, y, color}
+            spikes: [],   // {x, y}
+            exit: {x: 14, y: 10}
+        };
+
+        /* 12 Progressive Cooperative Levels Grid Maps (16x12)
+           W: Wall, .: Empty, 1: P1 Start, 2: P2 Start, E: Exit Gate,
+           R: Red Switch, r: Red Door, B: Blue Switch, b: Blue Door,
+           X: Red Box, Y: Blue Box, S: Spike Hazard
+        */
+        const LEVEL_DESIGNS = [
+            // Level 1: Pengenalan dasar tombol dan pintu
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..W......W..2W",
+                "W...W...r..W...W",
+                "W.R.W......W.B.W",
+                "WWWWW......WWWWW",
+                "W..............W",
+                "W.WWWWWWWWWWWW.W",
+                "W.W..........W.W",
+                "W.W...b......W.W",
+                "W.W..........W.W",
+                "W.....E........W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 2: Pintu silang kooperatif
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..W...W...W..2W",
+                "W.R.W.b.W.r.W.B.W",
+                "W...W...W...W...W",
+                "WW.WWWW.W.WWWW.WW",
+                "W...............W",
+                "W.WWWWWW.WWWWWW.W",
+                "W...............W",
+                "WW.WWWWWWWWWWW.WW",
+                "W...............W",
+                "W.......E.......W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 3: Pengenalan Mendorong Box
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1...W......W..2W",
+                "W.X..r......b.Y.W",
+                "W....W......W...W",
+                "WWWWWW......WWWWW",
+                "W.....WWWWWW....W",
+                "W.R............B.W",
+                "WWWWWW......WWWWW",
+                "W...............W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 4: Box & Tombol di jalan terpisah
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..W...W...W..2W",
+                "W.X.W.R.W.B.W.Y.W",
+                "W...W...W...W...W",
+                "WW.WWWW.W.WWWW.WW",
+                "W...r.......b...W",
+                "W.WWWWWW.WWWWWW.W",
+                "W...............W",
+                "W...WWWW.WWWW...W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 5: Rintangan Duri Spike
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..S...r...S..2W",
+                "W...S.R.W.B.S...W",
+                "WWWWWWWWW.WWWWWWW",
+                "W...............W",
+                "W.WWWWWW.WWWWWW.W",
+                "W.W...b.....W...W",
+                "W.W.S.S.S.S.W...W",
+                "W.W.........W...W",
+                "W.WWWWWW.WWWW...W",
+                "W.......E.......W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 6: Jalur berbelit ganda
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1.W....W....W.2W",
+                "W..W.R..W..B.W..W",
+                "W..WWWWWWWWWW..W",
+                "W.r............bW",
+                "WWWWWWWW.WWWWWWWW",
+                "W.X............YW",
+                "W.WWWWWW.WWWWWW.W",
+                "W...............W",
+                "WWWWW...E...WWWWW",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 7: Pintu bertingkat ganda
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1.R.W......W.B.2W",
+                "W....r......b....W",
+                "WWWWWW......WWWWWW",
+                "W.X............Y.W",
+                "W.WWWWWWWWWWWWWW.W",
+                "W......r.b.......W",
+                "WWWWWWWW.WWWWWWWWW",
+                "W................W",
+                "W.......E........W",
+                "W................W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 8: Maze Pushing puzzle
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..W.......W..2W",
+                "W.X.W.WW.WW.W.Y.W",
+                "W...W.R..B..W...W",
+                "WW.WWWWWWWWWWW.WW",
+                "W...r.......b...W",
+                "W.WWWW.S.S.WWWW.W",
+                "W...............W",
+                "WWWWWWWW.WWWWWWWW",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 9: Duri & Sakelar tersembunyi
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..S.R...B.S..2W",
+                "W...WWWWWWWWW...W",
+                "W.X.r.......b.Y.W",
+                "WWWWWWWW.WWWWWWWW",
+                "W.S...........S.W",
+                "W.WWWWWW.WWWWWW.W",
+                "W...............W",
+                "W.WWWWWW.WWWWWW.W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 10: Sync Puzzle Rumit
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1..r.......b..2W",
+                "W.R.WWWW.WWWW.B.W",
+                "W.X.W......W..Y.W",
+                "WWWWW.S.S..WWWWWW",
+                "W...............W",
+                "W.WWWWWW.WWWWWW.W",
+                "W...r.......b...W",
+                "W.WWWWWW.WWWWWW.W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 11: Koridor Ketat
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1.W.R.W.b.W.B.2W",
+                "W..W...W...W...W",
+                "W.XW.WWWWWWW.Y.W",
+                "W..r.........W..W",
+                "WWWWWWWW.WWWWWWWW",
+                "W.S...S...S...S.W",
+                "W.WWWWWWWWWWWWW.W",
+                "W...............W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ],
+            // Level 12: Mahakarya Kerjasama Final
+            [
+                "WWWWWWWWWWWWWWWW",
+                "W1.R.W..S..W.B.2W",
+                "W....r..S..b....W",
+                "WWWWWW..S..WWWWWW",
+                "W.X...........Y.W",
+                "WWWWWWWW.WWWWWWWW",
+                "W.S...r...b...S.W",
+                "W.WWWWWWWWWWWWW.W",
+                "W.......S.......W",
+                "W.......E.......W",
+                "W...............W",
+                "WWWWWWWWWWWWWWWW"
+            ]
+        ];
+
+        /* ==========================================================================
+           3. PEERJS NETWORKING & SLOT LOCKING SYSTEM
+           ========================================================================== */
+        function initDisplayPeer() {
+            // Re-use or generate a 4 digit room code
+            roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('room-code-display').innerText = roomCode;
+
+            let peerId = "labirin-room-" + roomCode;
+            peer = new Peer(peerId);
+
+            peer.on('open', (id) => {
+                console.log("Room Display aktif dengan ID:", id);
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    handleIncomingPeerData(conn, data);
+                });
+                conn.on('close', () => {
+                    handlePeerDisconnect(conn);
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.warn("PeerJS warning, fallback ke ID lain jika bentrok:", err);
+            });
+        }
+
+        function handleIncomingPeerData(conn, data) {
+            // Handshake Request Join
+            if (data.type === 'join') {
+                let requestedRole = data.role; // 'controller1' or 'controller2'
+                
+                // Check Slot Availability
+                if (requestedRole === 'controller1') {
+                    if (connections.p1 && connections.p1.open) {
+                        conn.send({ type: 'rejected', reason: 'Slot Player 1 Penuh!' });
+                        return;
+                    }
+                    connections.p1 = conn;
+                    conn.send({ type: 'accepted', role: 'controller1' });
+                    updatePlayerStatusUI('p1', true);
+                } else if (requestedRole === 'controller2') {
+                    if (connections.p2 && connections.p2.open) {
+                        conn.send({ type: 'rejected', reason: 'Slot Player 2 Penuh!' });
+                        return;
+                    }
+                    connections.p2 = conn;
+                    conn.send({ type: 'accepted', role: 'controller2' });
+                    updatePlayerStatusUI('p2', true);
+                }
+            }
+            // Controller Input Movement
+            else if (data.type === 'input') {
+                let playerKey = (data.role === 'controller1') ? 'p1' : 'p2';
+                activeKeys[playerKey] = data.keys;
+            }
+        }
+
+        function handlePeerDisconnect(conn) {
+            if (connections.p1 === conn) {
+                connections.p1 = null;
+                updatePlayerStatusUI('p1', false);
+            }
+            if (connections.p2 === conn) {
+                connections.p2 = null;
+                updatePlayerStatusUI('p2', false);
+            }
+        }
+
+        function updatePlayerStatusUI(player, isConnected) {
+            let el = document.getElementById(`status-${player}-display`);
+            if (isConnected) {
+                el.classList.remove('text-red-400', 'text-blue-400', 'bg-red-950/50', 'bg-blue-950/50');
+                el.classList.add('text-emerald-400', 'bg-emerald-950/50');
+                el.innerHTML = `<i class="fa-solid fa-circle text-[8px]"></i> ${player.toUpperCase()}: Terhubung`;
+            } else {
+                let colorClass = player === 'p1' ? 'text-red-400 bg-red-950/50' : 'text-blue-400 bg-blue-950/50';
+                el.className = `flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-700 ${colorClass}`;
+                el.innerHTML = `<i class="fa-solid fa-circle text-[8px] animate-pulse"></i> ${player.toUpperCase()}: Terputus`;
+            }
+        }
+
+        /* ==========================================================================
+           4. ROLE SELECTION & CONTROLLER LOGIC
+           ========================================================================== */
+        function selectRole(role) {
+            sfx.init();
+            currentRole = role;
+
+            document.getElementById('screen-role').classList.add('hidden');
+
+            if (role === 'display') {
+                document.getElementById('screen-display').classList.remove('hidden');
+                initDisplayPeer();
+                initGameCanvas();
+                loadLevel(0);
+                requestAnimationFrame(gameLoop);
+            } else {
+                document.getElementById('screen-controller-join').classList.remove('hidden');
+                document.getElementById('controller-role-title').innerText = 
+                    role === 'controller1' ? 'Stik Player 1 (HP Merah)' : 'Stik Player 2 (HP Biru)';
+            }
+        }
+
+        function backToRoleSelect() {
+            document.getElementById('screen-controller-join').classList.add('hidden');
+            document.getElementById('screen-role').classList.remove('hidden');
+        }
+
+        let controllerPeer = null;
+        let controllerConn = null;
+
+        function connectControllerToRoom() {
+            let code = document.getElementById('input-room-code').value.trim();
+            if (code.length !== 4) {
+                showModal("Kode Salah", "Masukkan 4 digit kode room yang tertera pada layar Laptop Utama.");
+                return;
+            }
+
+            controllerPeer = new Peer();
+            controllerPeer.on('open', () => {
+                let hostPeerId = "labirin-room-" + code;
+                controllerConn = controllerPeer.connect(hostPeerId);
+
+                controllerConn.on('open', () => {
+                    // Send Join Request
+                    controllerConn.send({ type: 'join', role: currentRole });
+                });
+
+                controllerConn.on('data', (data) => {
+                    if (data.type === 'accepted') {
+                        // Switch to Controller Active Pad Screen
+                        document.getElementById('screen-controller-join').classList.add('hidden');
+                        document.getElementById('screen-controller-active').classList.remove('hidden');
+                        
+                        let isP1 = currentRole === 'controller1';
+                        document.getElementById('controller-player-name').innerText = isP1 ? 'Player 1 (Merah)' : 'Player 2 (Biru)';
+                        document.getElementById('controller-indicator').className = `w-4 h-4 rounded-full ${isP1 ? 'bg-red-500' : 'bg-blue-500'}`;
+                        
+                        setupVirtualGamepadEvents();
+                    } else if (data.type === 'rejected') {
+                        showModal("Akses Ditolak / Penuh", data.reason);
+                        controllerConn.close();
+                    }
+                });
+
+                controllerConn.on('error', () => {
+                    showModal("Gagal Terhubung", "Gagal menghubungkan ke room. Pastikan Kode Room benar dan Laptop dalam keadaan aktif.");
+                });
+            });
+        }
+
+        function setupVirtualGamepadEvents() {
+            let localKeys = { up: false, down: false, left: false, right: false };
+            const bindBtn = (id, keyName) => {
+                let btn = document.getElementById(id);
+                
+                const press = (e) => {
+                    e.preventDefault();
+                    sfx.init();
+                    if (!localKeys[keyName]) {
+                        localKeys[keyName] = true;
+                        sendInputState();
+                    }
+                };
+                const release = (e) => {
+                    e.preventDefault();
+                    if (localKeys[keyName]) {
+                        localKeys[keyName] = false;
+                        sendInputState();
+                    }
+                };
+
+                btn.addEventListener('touchstart', press);
+                btn.addEventListener('touchend', release);
+                btn.addEventListener('mousedown', press);
+                btn.addEventListener('mouseup', release);
+                btn.addEventListener('mouseleave', release);
+            };
+
+            bindBtn('btn-up', 'up');
+            bindBtn('btn-down', 'down');
+            bindBtn('btn-left', 'left');
+            bindBtn('btn-right', 'right');
+
+            function sendInputState() {
+                if (controllerConn && controllerConn.open) {
+                    controllerConn.send({ type: 'input', role: currentRole, keys: localKeys });
+                }
+            }
+        }
+
+        /* Keyboard Fallback for Display (Laptop) Testing */
+        window.addEventListener('keydown', (e) => {
+            sfx.init();
+            // P1: WASD
+            if (e.key === 'w' || e.key === 'W') activeKeys.p1.up = true;
+            if (e.key === 's' || e.key === 'S') activeKeys.p1.down = true;
+            if (e.key === 'a' || e.key === 'A') activeKeys.p1.left = true;
+            if (e.key === 'd' || e.key === 'D') activeKeys.p1.right = true;
+
+            // P2: Arrow Keys
+            if (e.key === 'ArrowUp') activeKeys.p2.up = true;
+            if (e.key === 'ArrowDown') activeKeys.p2.down = true;
+            if (e.key === 'ArrowLeft') activeKeys.p2.left = true;
+            if (e.key === 'ArrowRight') activeKeys.p2.right = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'w' || e.key === 'W') activeKeys.p1.up = false;
+            if (e.key === 's' || e.key === 'S') activeKeys.p1.down = false;
+            if (e.key === 'a' || e.key === 'A') activeKeys.p1.left = false;
+            if (e.key === 'd' || e.key === 'D') activeKeys.p1.right = false;
+
+            if (e.key === 'ArrowUp') activeKeys.p2.up = false;
+            if (e.key === 'ArrowDown') activeKeys.p2.down = false;
+            if (e.key === 'ArrowLeft') activeKeys.p2.left = false;
+            if (e.key === 'ArrowRight') activeKeys.p2.right = false;
+        });
+
+        /* ==========================================================================
+           5. GAME ENGINE & CANVAS RENDERING
+           ========================================================================== */
+        let canvas, ctx;
+
+        function initGameCanvas() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            CELL_SIZE = Math.min(canvas.width / GRID_W, canvas.height / GRID_H);
+        }
+
+        function loadLevel(levelIdx) {
+            currentLevelIndex = levelIdx;
+            document.getElementById('level-title').innerText = `LEVEL ${levelIdx + 1} / 12`;
+
+            const map = LEVEL_DESIGNS[levelIdx];
+            gameObjects = {
+                players: [],
+                walls: [],
+                doors: [],
+                switches: [],
+                boxes: [],
+                spikes: [],
+                exit: {x: 0, y: 0}
+            };
+
+            for (let r = 0; r < GRID_H; r++) {
+                for (let c = 0; c < GRID_W; c++) {
+                    let char = map[r][c];
+                    let x = c * CELL_SIZE;
+                    let y = r * CELL_SIZE;
+
+                    if (char === 'W') {
+                        gameObjects.walls.push({x: c, y: r});
+                    } else if (char === '1') {
+                        gameObjects.players.push(createPlayer(1, c, r, '#ef4444')); // Red P1
+                    } else if (char === '2') {
+                        gameObjects.players.push(createPlayer(2, c, r, '#3b82f6')); // Blue P2
+                    } else if (char === 'E') {
+                        gameObjects.exit = {x: c, y: r};
+                    } else if (char === 'R') {
+                        gameObjects.switches.push({id: 'red', x: c, y: r, color: '#ef4444', isPressed: false});
+                    } else if (char === 'B') {
+                        gameObjects.switches.push({id: 'blue', x: c, y: r, color: '#3b82f6', isPressed: false});
+                    } else if (char === 'r') {
+                        gameObjects.doors.push({x: c, y: r, color: '#ef4444', reqSwitchId: 'red', isOpen: false});
+                    } else if (char === 'b') {
+                        gameObjects.doors.push({x: c, y: r, color: '#3b82f6', reqSwitchId: 'blue', isOpen: false});
+                    } else if (char === 'X') {
+                        gameObjects.boxes.push({x: c * CELL_SIZE, y: r * CELL_SIZE, color: '#ef4444'});
+                    } else if (char === 'Y') {
+                        gameObjects.boxes.push({x: c * CELL_SIZE, y: r * CELL_SIZE, color: '#3b82f6'});
+                    } else if (char === 'S') {
+                        gameObjects.spikes.push({x: c, y: r});
+                    }
+                }
+            }
+        }
+
+        function createPlayer(id, gx, gy, color) {
+            return {
+                id: id,
+                x: gx * CELL_SIZE + CELL_SIZE / 2,
+                y: gy * CELL_SIZE + CELL_SIZE / 2,
+                radius: CELL_SIZE * 0.3,
+                speed: 3,
+                color: color,
+                vx: 0,
+                vy: 0,
+                animFrame: 0,
+                isPushing: false,
+                isMoving: false
+            };
+        }
+
+        function resetCurrentLevel() {
+            loadLevel(currentLevelIndex);
+        }
+
+        /* Update Engine Calculations */
+        function updateGame() {
+            // Update inputs to velocity
+            let p1 = gameObjects.players.find(p => p.id === 1);
+            let p2 = gameObjects.players.find(p => p.id === 2);
+
+            if (p1) applyMovement(p1, activeKeys.p1);
+            if (p2) applyMovement(p2, activeKeys.p2);
+
+            // Update Switches state
+            gameObjects.switches.forEach(sw => {
+                let wasPressed = sw.isPressed;
+                sw.isPressed = false;
+
+                // Check if player or box is on switch
+                gameObjects.players.forEach(p => {
+                    let gx = Math.floor(p.x / CELL_SIZE);
+                    let gy = Math.floor(p.y / CELL_SIZE);
+                    if (gx === sw.x && gy === sw.y) sw.isPressed = true;
+                });
+                gameObjects.boxes.forEach(b => {
+                    let gx = Math.floor((b.x + CELL_SIZE/2) / CELL_SIZE);
+                    let gy = Math.floor((b.y + CELL_SIZE/2) / CELL_SIZE);
+                    if (gx === sw.x && gy === sw.y) sw.isPressed = true;
+                });
+
+                if (sw.isPressed && !wasPressed) sfx.buttonPress();
+            });
+
+            // Update Doors state
+            gameObjects.doors.forEach(door => {
+                let sw = gameObjects.switches.find(s => s.id === door.reqSwitchId);
+                let openState = sw ? sw.isPressed : false;
+                if (openState !== door.isOpen) {
+                    door.isOpen = openState;
+                    if (door.isOpen) sfx.doorOpen();
+                }
+            });
+
+            // Check Win Condition: Both players reach Exit Gate
+            if (p1 && p2) {
+                let eGx = gameObjects.exit.x;
+                let eGy = gameObjects.exit.y;
+                let p1InExit = Math.floor(p1.x / CELL_SIZE) === eGx && Math.floor(p1.y / CELL_SIZE) === eGy;
+                let p2InExit = Math.floor(p2.x / CELL_SIZE) === eGx && Math.floor(p2.y / CELL_SIZE) === eGy;
+
+                if (p1InExit && p2InExit) {
+                    sfx.win();
+                    if (currentLevelIndex + 1 < LEVEL_DESIGNS.length) {
+                        showModal("Level Selesai!", `Selamat! Anda berhasil menyelesaikan Level ${currentLevelIndex + 1}. Melanjut ke level berikutnya!`);
+                        loadLevel(currentLevelIndex + 1);
+                    } else {
+                        showModal("TAMAT!", "Luar Biasa! Anda dan Partner telah menyelesaikan seluruh 12 Level Labirin Kooperatif!");
+                    }
+                }
+            }
+        }
+
+        function applyMovement(player, keys) {
+            let dx = 0;
+            let dy = 0;
+
+            if (keys.up) dy -= 1;
+            if (keys.down) dy += 1;
+            if (keys.left) dx -= 1;
+            if (keys.right) dx += 1;
+
+            // Normalize diagonal movement speed
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.7071;
+                dy *= 0.7071;
+            }
+
+            player.vx = dx * player.speed;
+            player.vy = dy * player.speed;
+            player.isMoving = (dx !== 0 || dy !== 0);
+            if (player.isMoving) {
+                player.animFrame += 0.2;
+                if (Math.floor(player.animFrame) % 10 === 0) sfx.step();
+            }
+
+            // Test Horizontal movement & collisions
+            let nextX = player.x + player.vx;
+            if (!checkCollision(nextX, player.y, player)) {
+                player.x = nextX;
+            }
+
+            // Test Vertical movement & collisions
+            let nextY = player.y + player.vy;
+            if (!checkCollision(player.x, nextY, player)) {
+                player.y = nextY;
+            }
+        }
+
+        function checkCollision(targetX, targetY, player) {
+            let r = player.radius;
+
+            // 1. Map Borders
+            if (targetX - r < 0 || targetX + r > GRID_W * CELL_SIZE ||
+                targetY - r < 0 || targetY + r > GRID_H * CELL_SIZE) {
+                return true;
+            }
+
+            // 2. Wall Collisions
+            for (let w of gameObjects.walls) {
+                let wx = w.x * CELL_SIZE;
+                let wy = w.y * CELL_SIZE;
+                if (circleRectOverlap(targetX, targetY, r, wx, wy, CELL_SIZE, CELL_SIZE)) {
+                    return true;
+                }
+            }
+
+            // 3. Closed Doors Collisions
+            for (let d of gameObjects.doors) {
+                if (!d.isOpen) {
+                    let dx = d.x * CELL_SIZE;
+                    let dy = d.y * CELL_SIZE;
+                    if (circleRectOverlap(targetX, targetY, r, dx, dy, CELL_SIZE, CELL_SIZE)) {
+                        return true;
+                    }
+                }
+            }
+
+            // 4. Box Collisions & Pushing Mechanism
+            player.isPushing = false;
+            for (let b of gameObjects.boxes) {
+                if (circleRectOverlap(targetX, targetY, r, b.x, b.y, CELL_SIZE, CELL_SIZE)) {
+                    player.isPushing = true;
+                    // Attempt to push the box in movement direction
+                    let pushDx = player.vx * 0.8;
+                    let pushDy = player.vy * 0.8;
+
+                    let newBoxX = b.x + pushDx;
+                    let newBoxY = b.y + pushDy;
+
+                    // Verify Box collision with walls and other boxes
+                    if (!canBoxMoveTo(newBoxX, newBoxY, b)) {
+                        return true; // Block player if box cannot move
+                    } else {
+                        b.x = newBoxX;
+                        b.y = newBoxY;
+                        sfx.boxPush();
+                    }
+                }
+            }
+
+            // 5. Spikes Hazard Collision
+            for (let s of gameObjects.spikes) {
+                let sx = s.x * CELL_SIZE;
+                let sy = s.y * CELL_SIZE;
+                if (circleRectOverlap(targetX, targetY, r - 2, sx, sy, CELL_SIZE, CELL_SIZE)) {
+                    sfx.buttonPress();
+                    resetCurrentLevel();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        function canBoxMoveTo(bx, by, currentBox) {
+            // Border check
+            if (bx < 0 || bx + CELL_SIZE > GRID_W * CELL_SIZE ||
+                by < 0 || by + CELL_SIZE > GRID_H * CELL_SIZE) return false;
+
+            // Wall check
+            for (let w of gameObjects.walls) {
+                if (rectRectOverlap(bx, by, CELL_SIZE, CELL_SIZE, w.x * CELL_SIZE, w.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)) return false;
+            }
+
+            // Closed Door check
+            for (let d of gameObjects.doors) {
+                if (!d.isOpen && rectRectOverlap(bx, by, CELL_SIZE, CELL_SIZE, d.x * CELL_SIZE, d.y * CELL_SIZE, CELL_SIZE, CELL_SIZE)) return false;
+            }
+
+            // Other Box check
+            for (let b of gameObjects.boxes) {
+                if (b !== currentBox && rectRectOverlap(bx, by, CELL_SIZE, CELL_SIZE, b.x, b.y, CELL_SIZE, CELL_SIZE)) return false;
+            }
+
+            return true;
+        }
+
+        // Helper Overlap Collisions
+        function circleRectOverlap(cx, cy, cr, rx, ry, rw, rh) {
+            let closestX = Math.max(rx, Math.min(cx, rx + rw));
+            let closestY = Math.max(ry, Math.min(cy, ry + rh));
+            let distX = cx - closestX;
+            let distY = cy - closestY;
+            return (distX * distX + distY * distY) < (cr * cr);
+        }
+
+        function rectRectOverlap(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
+            return r1x < r2x + r2w && r1x + r1w > r2x && r1y < r2y + r2h && r1y + r1h > r2y;
+        }
+
+        /* Render Loop */
+        function renderGame() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Grid & Walls
+            for (let r = 0; r < GRID_H; r++) {
+                for (let c = 0; c < GRID_W; c++) {
+                    ctx.strokeStyle = '#334155';
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                }
+            }
+
+            // Draw Walls
+            gameObjects.walls.forEach(w => {
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(w.x * CELL_SIZE, w.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(w.x * CELL_SIZE, w.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            });
+
+            // Draw Exit Gate
+            let ex = gameObjects.exit.x * CELL_SIZE;
+            let ey = gameObjects.exit.y * CELL_SIZE;
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(ex + 4, ey + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('EXIT', ex + CELL_SIZE/2, ey + CELL_SIZE/2 + 4);
+
+            // Draw Switches
+            gameObjects.switches.forEach(sw => {
+                let x = sw.x * CELL_SIZE + CELL_SIZE / 2;
+                let y = sw.y * CELL_SIZE + CELL_SIZE / 2;
+                ctx.fillStyle = sw.color;
+                ctx.beginPath();
+                ctx.arc(x, y, sw.isPressed ? CELL_SIZE * 0.25 : CELL_SIZE * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+
+            // Draw Doors
+            gameObjects.doors.forEach(d => {
+                if (!d.isOpen) {
+                    ctx.fillStyle = d.color;
+                    ctx.fillRect(d.x * CELL_SIZE + 4, d.y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(d.x * CELL_SIZE + 4, d.y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+                }
+            });
+
+            // Draw Pushable Boxes
+            gameObjects.boxes.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.fillRect(b.x + 2, b.y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(b.x + 4, b.y + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+            });
+
+            // Draw Spikes
+            gameObjects.spikes.forEach(s => {
+                let sx = s.x * CELL_SIZE;
+                let sy = s.y * CELL_SIZE;
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.moveTo(sx + CELL_SIZE/2, sy + 4);
+                ctx.lineTo(sx + 4, sy + CELL_SIZE - 4);
+                ctx.lineTo(sx + CELL_SIZE - 4, sy + CELL_SIZE - 4);
+                ctx.closePath();
+                ctx.fill();
+            });
+
+            // Draw Stickman Players with Dynamic Animation
+            gameObjects.players.forEach(p => drawStickman(p));
+        }
+
+        /* Animated Stickman Renderer (Orang Lidi) */
+        function drawStickman(p) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+
+            let headRadius = CELL_SIZE * 0.16;
+            let bodyLength = CELL_SIZE * 0.3;
+            let anim = Math.sin(p.animFrame) * (p.isMoving ? 8 : 0);
+
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            // Head (Kepala Bundar)
+            ctx.beginPath();
+            ctx.arc(0, -bodyLength / 2 - headRadius, headRadius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.stroke();
+
+            // Body (Badan)
+            ctx.beginPath();
+            ctx.moveTo(0, -bodyLength / 2);
+            ctx.lineTo(0, bodyLength / 2);
+            ctx.stroke();
+
+            // Arms (Tangan dengan animasi/dorongan)
+            ctx.beginPath();
+            if (p.isPushing) {
+                // Pushing pose
+                ctx.moveTo(0, -bodyLength / 4);
+                ctx.lineTo(12, -bodyLength / 4 - 2);
+                ctx.moveTo(0, -bodyLength / 4);
+                ctx.lineTo(-12, -bodyLength / 4 - 2);
+            } else {
+                // Walking pose
+                ctx.moveTo(0, -bodyLength / 4);
+                ctx.lineTo(Math.sin(p.animFrame) * 10, bodyLength / 4);
+                ctx.moveTo(0, -bodyLength / 4);
+                ctx.lineTo(-Math.sin(p.animFrame) * 10, bodyLength / 4);
+            }
+            ctx.stroke();
+
+            // Legs (Kaki dengan animasi jalan)
+            ctx.beginPath();
+            ctx.moveTo(0, bodyLength / 2);
+            ctx.lineTo(Math.sin(p.animFrame) * 12, bodyLength / 2 + 12);
+            ctx.moveTo(0, bodyLength / 2);
+            ctx.lineTo(-Math.sin(p.animFrame) * 12, bodyLength / 2 + 12);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        /* Main Game Loop */
+        function gameLoop() {
+            updateGame();
+            renderGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        /* Modal Helpers */
+        function showModal(title, msg) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerText = msg;
+            document.getElementById('modal-notif').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-notif').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
